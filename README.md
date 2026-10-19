@@ -107,7 +107,8 @@ npm run dev
 ### Variables de Entorno (Backend)
 
 Crea un archivo `.env` en la carpeta `backend/` para configurar PostgreSQL y
-el entorno. Sin `DATABASE_HOST`, el proyecto usa SQLite localmente:
+el entorno. Sin `DATABASE_URL` ni `DATABASE_HOST`, el proyecto usa SQLite
+localmente:
 
 ```env
 SECRET_KEY=una-clave-aleatoria-larga
@@ -153,22 +154,28 @@ datos personales.
 9. Asistente conversacional desde la aplicación móvil.
 10. Dashboard web de indicadores agregados para administradores.
 
-El workflow de Azure despliega el backend cuando están configurados sus
-secretos OIDC y la base de datos PostgreSQL. Los workflows manuales
-`Deploy TutoUdec web` y `Build TutoUdec Android APK` despliegan la web a Azure
-Static Web Apps y generan el APK de prueba en EAS, respectivamente.
+El workflow `Build and test TutoUdec` ejecuta las validaciones del backend en
+cada cambio a `main`. Para un despliegue de prototipo sin cargos a tarjeta se
+puede usar Render Free para la API y la web estática, con PostgreSQL gratuito
+en Neon. Los planes gratuitos tienen cuotas y la API de Render se duerme tras
+15 minutos sin tráfico, por lo que el primer acceso puede tardar alrededor de
+un minuto.
 
-Antes de ejecutarlos, crea Azure Static Web Apps y configura en GitHub el
-secreto `AZURE_STATIC_WEB_APPS_API_TOKEN` y la variable `VITE_API_URL` con la
-URL HTTPS de la API. Inicia sesión en Expo con
-`npx eas-cli@25.2.0 login`, configura las credenciales Android de EAS una vez
-y agrega el secreto `EXPO_TOKEN` y la variable `EXPO_PUBLIC_API_URL` al
-repositorio. El proyecto EAS `@cristian.123/tutoudec` ya está creado y su ID
-está incluido en la configuración móvil. El perfil `preview` produce un APK
-compartible.
+Configura `DATABASE_URL`, `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`,
+`CORS_ALLOWED_ORIGINS` y `CSRF_TRUSTED_ORIGINS` en el servicio de backend.
+La web se construye desde `web/` con `npm ci && npm run build` y publica
+`web/dist`; configura `VITE_API_URL` con la URL HTTPS de la API terminada en
+`/api`.
 
-Hasta tener esos recursos y ajustes no se puede emitir un enlace web o de
-descarga de APK verificado.
+Para generar el APK, inicia sesión en Expo con `npx eas-cli@25.2.0 login`,
+configura una vez las credenciales Android de EAS y agrega el secreto
+`EXPO_TOKEN` y la variable `EXPO_PUBLIC_API_URL` con la misma URL de API. El
+proyecto EAS `@cristian.123/tutoudec` ya está creado y su ID está incluido en
+la configuración móvil. El workflow manual `Build TutoUdec Android APK`
+produce un APK compartible con el perfil `preview`.
+
+Los enlaces de la web y el APK solo deben anunciarse después de comprobar
+que los despliegues públicos están operativos.
 
 Para compilar la web y el APK, configura `VITE_API_URL` y
 `EXPO_PUBLIC_API_URL` con la misma URL HTTPS de la API, por ejemplo

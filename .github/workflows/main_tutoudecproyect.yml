@@ -1,4 +1,4 @@
-name: Build and deploy TutoUdec
+name: Build and test TutoUdec
 
 on:
   push:
@@ -25,40 +25,3 @@ jobs:
           pip install -r requirements.txt
           python manage.py check
           python manage.py test
-      - name: Upload application
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            .
-            !.git/**
-            !backend/antenv/**
-            !backend/venv/**
-            !web/node_modules/**
-            !mobile/node_modules/**
-            !web/dist/**
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Download application
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A6605058DA2C4659A81169CA679A4725 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7132D8C93B344B409DDBDE5D068B1D44 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CFDFA4E6930F409B8629A3A4ACC2A03D }}
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: TutoUdecProyect
-          slot-name: Production
-          package: .
-          startup-command: python manage.py migrate --noinput && gunicorn --bind=0.0.0.0 --timeout 600 backend.wsgi:application

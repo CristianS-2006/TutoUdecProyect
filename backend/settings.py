@@ -7,6 +7,7 @@ WARNING: credenciales y DEBUG deben externalizarse antes de producción.
 from pathlib import Path
 from datetime import timedelta
 import os
+from urllib.parse import parse_qs, unquote, urlparse
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
@@ -83,8 +84,44 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # En producción se configura PostgreSQL con variables de entorno. SQLite queda
 # como opción local para que el prototipo pueda ejecutarse sin servicios externos.
+database_url = os.getenv('DATABASE_URL')
 database_host = os.getenv('DATABASE_HOST')
-if database_host:
+if database_url:
+    parsed_database_url = urlparse(database_url)
+    database_name = unquote(parsed_database_url.path.lstrip('/'))
+    database_user = unquote(parsed_database_url.username or '')
+    database_password = unquote(parsed_database_url.password or '')
+    if (
+        parsed_database_url.scheme not in ('postgres', 'postgresql')
+        or not parsed_database_url.hostname
+        or not database_name
+        or not database_user
+        or not database_password
+    ):
+        raise ImproperlyConfigured(
+            'DATABASE_URL debe ser una URL PostgreSQL válida con credenciales.'
+        )
+    database_options = parse_qs(parsed_database_url.query)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': database_name,
+            'USER': database_user,
+            'PASSWORD': database_password,
+            'HOST': parsed_database_url.hostname,
+            'PORT': parsed_database_url.port or '5432',
+            'CONN_MAX_AGE': 60,
+            'OPTIONS': {
+                'sslmode': database_options.get('sslmode', ['require'])[0],
+                **(
+                    {'channel_binding': database_options['channel_binding'][0]}
+                    if 'channel_binding' in database_options
+                    else {}
+                ),
+            },
+        }
+    }
+elif database_host:
     required_database_settings = (
         'DATABASE_NAME',
         'DATABASE_USER',

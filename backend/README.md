@@ -130,9 +130,11 @@ Reseña dejada por un estudiante sobre una tutoría.
 
 ## Configuración de Base de Datos
 
-El desarrollo local usa SQLite. En Azure u otro proveedor, configura las
-variables de entorno `DATABASE_HOST`, `DATABASE_NAME`, `DATABASE_USER`,
-`DATABASE_PASSWORD` y, opcionalmente, `DATABASE_PORT` para usar PostgreSQL:
+El desarrollo local usa SQLite. En Render, Neon u otro proveedor, configura
+`DATABASE_URL` con una URL PostgreSQL. Se requiere SSL por defecto; la opción
+`sslmode` de la URL puede ajustarlo. También se pueden configurar por separado
+`DATABASE_HOST`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD` y,
+opcionalmente, `DATABASE_PORT`:
 
 ```env
 DATABASE_HOST=servidor-postgres

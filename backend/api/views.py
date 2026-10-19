@@ -8,7 +8,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Avg, Count
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
+from datetime import date
 from decimal import Decimal
 from .models import Tutor, Materia, Tutoria, Disponibilidad, Resena, PasswordResetToken, UserProfile, GrupoTutoria, InscripcionGrupo
 from .serializers import (
@@ -288,6 +292,72 @@ class AuthViewSet(viewsets.ViewSet):
             {'detail': 'Contraseña restablecida exitosamente'},
             status=status.HTTP_200_OK
         )
+
+
+class DashboardViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminUser]
+
+    @action(detail=False, methods=['get'])
+    def resumen(self, request):
+        hoy = timezone.localdate()
+        indice_mes_actual = hoy.year * 12 + hoy.month - 1
+        meses = []
+        for desplazamiento in reversed(range(6)):
+            indice_mes = indice_mes_actual - desplazamiento
+            anio, mes_cero_based = divmod(indice_mes, 12)
+            meses.append(date(anio, mes_cero_based + 1, 1))
+
+        tutorias_por_mes = {
+            item['mes'].strftime('%Y-%m'): item['total']
+            for item in Tutoria.objects.filter(
+                creado_en__date__gte=meses[0]
+            ).annotate(
+                mes=TruncMonth('creado_en')
+            ).values('mes').annotate(
+                total=Count('id')
+            ).order_by('mes')
+        }
+        tutorias_por_estado = dict(
+            Tutoria.objects.values_list('estado').annotate(total=Count('id'))
+        )
+        calificacion_promedio = Tutor.objects.aggregate(
+            promedio=Avg('calificacion')
+        )['promedio']
+
+        return Response({
+            'indicadores': {
+                'usuarios': User.objects.count(),
+                'tutores': Tutor.objects.count(),
+                'materias': Materia.objects.count(),
+                'tutorias': Tutoria.objects.count(),
+                'calificacion_promedio': round(
+                    float(calificacion_promedio or 0), 2
+                ),
+            },
+            'tutorias_por_estado': [
+                {
+                    'estado': estado,
+                    'etiqueta': etiqueta,
+                    'total': tutorias_por_estado.get(estado, 0),
+                }
+                for estado, etiqueta in Tutoria.ESTADOS
+            ],
+            'tutorias_por_mes': [
+                {
+                    'mes': mes.strftime('%Y-%m'),
+                    'total': tutorias_por_mes.get(mes.strftime('%Y-%m'), 0),
+                }
+                for mes in meses
+            ],
+            'tutorias_por_materia': list(
+                Materia.objects.annotate(
+                    total=Count('tutorias')
+                ).filter(tutorias__isnull=False).values(
+                    'nombre', 'total'
+                ).order_by('-total', 'nombre')[:5]
+            ),
+            'actualizado_en': timezone.now().isoformat(),
+        })
 
 
 class MateriaViewSet(viewsets.ModelViewSet):

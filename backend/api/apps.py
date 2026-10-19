@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class ApiConfig(AppConfig):
-    name = 'api'
+    name = 'backend.api'
     
     def ready(self):
-        import api.signals
+        import backend.api.signals

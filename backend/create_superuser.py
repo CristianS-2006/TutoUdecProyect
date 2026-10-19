@@ -1,5 +1,6 @@
 import os
 import sys
+import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
@@ -10,8 +11,18 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@cristian.com', 'admin1234')
-    print("Superusuario creado: admin / admin1234")
+
+username = os.getenv('DJANGO_SUPERUSER_USERNAME')
+email = os.getenv('DJANGO_SUPERUSER_EMAIL')
+password = os.getenv('DJANGO_SUPERUSER_PASSWORD')
+if not all((username, email, password)):
+    sys.exit(
+        'Configura DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL y '
+        'DJANGO_SUPERUSER_PASSWORD en el entorno antes de ejecutar este script.'
+    )
+
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print(f'Superusuario creado: {username}')
 else:
-    print("El superusuario admin ya existe")
+    print(f'El superusuario {username} ya existe')

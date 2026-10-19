@@ -1,5 +1,23 @@
-# Vue 3 + Vite
+# TutoUdec Web
 
-Esta plantilla te ayudará a comenzar a desarrollar con Vue 3 en Vite. La plantilla utiliza Vue 3 `<script setup>` SFCs, consulta la [documentación de script setup](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) para obtener más información.
+Frontend web Vue 3 para el sistema de tutorías TutoUdec. Consume la misma API
+Django y base de datos que la aplicación móvil.
 
-Obtén más información sobre el soporte IDE para Vue en la [Guía de escalado de documentos de Vue](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Inicio local
+
+```powershell
+npm ci
+$env:VITE_API_URL = "http://127.0.0.1:8000/api"
+npm run dev
+```
+
+Para producción, establece `VITE_API_URL` con el origen HTTPS de la API antes
+de compilar:
+
+```powershell
+$env:VITE_API_URL = "https://tu-api.azurewebsites.net/api"
+npm run build
+```
+
+El dashboard está disponible en `/dashboard` para cuentas administradoras y
+refresca los indicadores cada 30 segundos.

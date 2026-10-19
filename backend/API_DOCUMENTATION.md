@@ -11,6 +11,18 @@ http://localhost:8000/api/
 ## Documentación Interactiva
 - **Swagger UI**: http://localhost:8000/swagger/
 
+### Dashboard de análisis (administrador)
+
+```http
+GET /api/dashboard/resumen/
+Authorization: Bearer <access_token>
+```
+
+Devuelve indicadores agregados, distribución por estado, las cinco materias
+con mayor número de tutorías y la tendencia mensual de los últimos seis meses.
+Requiere un usuario administrador y no incluye datos personales. El frontend
+web consulta este endpoint cada 30 segundos.
+
 ## Endpoints Disponibles
 
 ### Materias

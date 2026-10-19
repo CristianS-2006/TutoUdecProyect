@@ -27,6 +27,9 @@
                             <li v-if="auth.isAuthenticated">
                                 <router-link to="/tutorias">Mis tutorías</router-link>
                             </li>
+                            <li v-if="auth.user?.role === 'admin'">
+                                <router-link to="/dashboard">Dashboard</router-link>
+                            </li>
 
                             <li v-if="!auth.isAuthenticated">
                                 <router-link to="/sesion" class="cta-button">

@@ -8,19 +8,29 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5n3*orp=5^)cu*31d2cj+!y6pb5h%i2$s)_&da%6$0)%j3$4jo'
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('SECRET_KEY debe configurarse cuando DEBUG=False.')
+    SECRET_KEY = 'django-insecure-local-development-only'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.7', '*']
+default_hosts = 'localhost,127.0.0.1,192.168.1.7' if DEBUG else ''
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', default_hosts).split(',')
+    if host.strip()
+]
+if not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('Configura ALLOWED_HOSTS con los dominios permitidos.')
 
 # Application definition
 INSTALLED_APPS = [
@@ -37,7 +47,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     'phonenumber_field',
-    'api',
+    'backend.api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +61,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -68,20 +78,48 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# Configuración especial:
-# este proyecto usa PostgreSQL como fuente principal de datos
-# (evita divergencias con instancias SQLite locales antiguas).
-# Para desarrollo, usamos SQLite para facilitar las pruebas:
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# En producción se configura PostgreSQL con variables de entorno. SQLite queda
+# como opción local para que el prototipo pueda ejecutarse sin servicios externos.
+database_host = os.getenv('DATABASE_HOST')
+if database_host:
+    required_database_settings = (
+        'DATABASE_NAME',
+        'DATABASE_USER',
+        'DATABASE_PASSWORD',
+    )
+    missing_database_settings = [
+        name for name in required_database_settings if not os.getenv(name)
+    ]
+    if missing_database_settings:
+        raise ImproperlyConfigured(
+            'Faltan variables de PostgreSQL: '
+            + ', '.join(missing_database_settings)
+        )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DATABASE_NAME'],
+            'USER': os.environ['DATABASE_USER'],
+            'PASSWORD': os.environ['DATABASE_PASSWORD'],
+            'HOST': database_host,
+            'PORT': os.getenv('DATABASE_PORT', '5432'),
+            'CONN_MAX_AGE': 60,
+        }
     }
-}
+elif DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    raise ImproperlyConfigured(
+        'DATABASE_HOST debe configurarse para usar PostgreSQL en producción.'
+    )
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -107,9 +145,10 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
+default_cors_origins = [
     "http://localhost:3000",
     "http://localhost:8000",
     "http://localhost:8080",
@@ -123,10 +162,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.7:8000",
     "http://192.168.1.7:3000",
 ]
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        'CORS_ALLOWED_ORIGINS', ','.join(default_cors_origins)
+    ).split(',')
+    if origin.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
-# WARNING: mantener en True solo para desarrollo local.
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 
 # Django REST Framework Configuration

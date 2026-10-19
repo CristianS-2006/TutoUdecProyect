@@ -1,8 +1,8 @@
-from django.test import TestCase
-from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.utils import timezone
 from .models import Materia, Tutor, Tutoria
 
 class MateriaAPITestCase(APITestCase):
@@ -11,10 +11,18 @@ class MateriaAPITestCase(APITestCase):
         self.url = reverse('materia-list')
 
     def test_create_materia(self):
+        admin = User.objects.create_superuser(
+            username='admin', email='admin@example.com', password='pass12345'
+        )
+        self.client.force_authenticate(user=admin)
         response = self.client.post(self.url, self.materia_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Materia.objects.count(), 1)
         self.assertEqual(Materia.objects.get().nombre, 'Matemáticas')
+
+    def test_anonymous_cannot_create_materia(self):
+        response = self.client.post(self.url, self.materia_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_materias(self):
         Materia.objects.create(**self.materia_data)
@@ -36,6 +44,10 @@ class TutorAPITestCase(APITestCase):
         self.url = reverse('tutor-list')
 
     def test_create_tutor(self):
+        admin = User.objects.create_superuser(
+            username='admin', email='admin@example.com', password='pass12345'
+        )
+        self.client.force_authenticate(user=admin)
         response = self.client.post(self.url, self.tutor_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Tutor.objects.count(), 1)
@@ -43,3 +55,53 @@ class TutorAPITestCase(APITestCase):
     def test_get_tutores(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class DashboardAPITestCase(APITestCase):
+    def setUp(self):
+        self.url = reverse('dashboard-resumen')
+        self.admin = User.objects.create_superuser(
+            username='admin', email='admin@example.com', password='pass12345'
+        )
+        self.student = User.objects.create_user(
+            username='estudiante', password='pass12345'
+        )
+        self.tutor_user = User.objects.create_user(
+            username='tutor', password='pass12345'
+        )
+        self.materia = Materia.objects.create(nombre='Matemáticas')
+        self.tutor = Tutor.objects.create(
+            usuario=self.tutor_user, especialidad='Matemáticas'
+        )
+        Tutoria.objects.create(
+            tutor=self.tutor,
+            estudiante=self.student,
+            materia=self.materia,
+            fecha_inicio=timezone.now(),
+            duracion_minutos=60,
+            estado='completada',
+        )
+
+    def test_summary_returns_aggregates_only_to_admin(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['indicadores']['tutorias'], 1)
+        completed = next(
+            item
+            for item in response.data['tutorias_por_estado']
+            if item['estado'] == 'completada'
+        )
+        self.assertEqual(completed['total'], 1)
+        self.assertEqual(len(response.data['tutorias_por_mes']), 6)
+        self.assertEqual(
+            response.data['tutorias_por_materia'][0],
+            {'nombre': 'Matemáticas', 'total': 1},
+        )
+        self.assertNotIn('estudiante', response.data)
+
+    def test_summary_is_forbidden_for_regular_users(self):
+        self.client.force_authenticate(user=self.student)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

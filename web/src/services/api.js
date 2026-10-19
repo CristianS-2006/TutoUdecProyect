@@ -100,4 +100,8 @@ export const tutoriasApi = {
   cancelar: (id) => api.post(`/tutorias/${id}/cancelar/`),
 };
 
+export const dashboardApi = {
+  resumen: () => api.get('/dashboard/resumen/'),
+};
+
 export { ACCESS_KEY, REFRESH_KEY };

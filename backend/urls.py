@@ -12,7 +12,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
+    path('api/', include('backend.api.urls')),
 
     # Raíz: interfaz Swagger para explorar endpoints sin Postman.
     path('', SpectacularSwaggerView.as_view(url_name='schema')),

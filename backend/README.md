@@ -130,26 +130,37 @@ Reseña dejada por un estudiante sobre una tutoría.
 
 ## Configuración de Base de Datos
 
-El proyecto usa **PostgreSQL** por defecto. Configurar en `settings.py`:
+El desarrollo local usa SQLite. En Azure u otro proveedor, configura las
+variables de entorno `DATABASE_HOST`, `DATABASE_NAME`, `DATABASE_USER`,
+`DATABASE_PASSWORD` y, opcionalmente, `DATABASE_PORT` para usar PostgreSQL:
 
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tutoudec_db',
-        'USER': 'postgres',
-        'PASSWORD': 'tu_contraseña',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+```env
+DATABASE_HOST=servidor-postgres
+DATABASE_NAME=tutoudec_db
+DATABASE_USER=usuario_postgres
+DATABASE_PASSWORD=contraseña_segura
+DATABASE_PORT=5432
 ```
+
+En producción también son obligatorios `SECRET_KEY`, `DEBUG=False` y
+`ALLOWED_HOSTS`. Para habilitar el frontend web, configura
+`CORS_ALLOWED_ORIGINS` con su origen HTTPS.
+
+## Dashboard de análisis
+
+`GET /api/dashboard/resumen/` entrega indicadores agregados y tendencias de
+tutorías a usuarios administradores. La ruta no incluye nombres ni datos de
+estudiantes y tutores.
 
 ---
 
 ## Comandos Útiles
 
 ```powershell
+# Configura DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL y
+# DJANGO_SUPERUSER_PASSWORD en el entorno antes de crear un superusuario.
+python manage.py createsuperuser
+
 # Aplicar migraciones
 python manage.py makemigrations
 python manage.py migrate
@@ -159,6 +170,10 @@ python manage.py createsuperuser
 
 # Iniciar servidor
 python manage.py runserver 0.0.0.0:8000
+
+# Cargar catálogo ficticio para demostraciones; las cuentas de tutor de
+# demostración quedan desactivadas y no se les asignan contraseñas conocidas.
+python manage.py seed_data
 
 # Reiniciar base de datos (¡CUIDADO!)
 python manage.py flush

@@ -4,11 +4,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import BaseLayout from '../components/layout/BaseLayout.vue';
 import HomeView from '../views/HomeView.vue';
-import Sesion from '../components/pages/Sesion.vue';
-import Formulario from '../components/pages/Formulario.vue';
+import Sesion from '../components/Pages/Sesion.vue';
+import Formulario from '../components/Pages/Formulario.vue';
 import TutoresView from '../views/TutoresView.vue';
 import MateriasView from '../views/MateriasView.vue';
 import TutoriasView from '../views/TutoriasView.vue';
+import DashboardView from '../views/DashboardView.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
@@ -51,6 +52,12 @@ const router = createRouter({
           component: TutoriasView,
           meta: { requiresAuth: true },
         },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: DashboardView,
+          meta: { requiresAdmin: true },
+        },
       ],
     },
   ],
@@ -61,6 +68,12 @@ router.beforeEach((to) => {
   // Rutas protegidas: redirige a login con return URL.
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'sesion', query: { redirect: to.fullPath } };
+  }
+  if (to.meta.requiresAdmin && !auth.isAuthenticated) {
+    return { name: 'sesion', query: { redirect: to.fullPath } };
+  }
+  if (to.meta.requiresAdmin && auth.user?.role !== 'admin') {
+    return { name: 'home' };
   }
   // Sesión/registro solo para usuarios no autenticados.
   if (to.meta.guestOnly && auth.isAuthenticated) {

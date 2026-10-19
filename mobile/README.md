@@ -7,7 +7,7 @@ Aplicación móvil del sistema de tutorías construida con React Native y Expo.
 - Node.js 18+
 - Expo CLI
 - Expo Go (en el dispositivo móvil)
-- Python 3.10+ (para el backend)
+- Python 3.12-3.14 (para el backend)
 
 ## Dependencias Principales
 
@@ -93,7 +93,20 @@ La dirección del servidor backend se configura en:
 src/config.js
 ```
 
-Por defecto usa `DEFAULT_LAN_HOST = '192.168.1.8'`. Cambiar por la IP de tu PC.
+Por defecto usa `DEFAULT_LAN_HOST = '192.168.1.7'`. Cambiar por la IP de tu PC.
+
+El proyecto EAS `@cristian.123/tutoudec` ya está creado y vinculado en
+`app.config.js`. Para crear un APK de prueba, inicia sesión en la CLI (`npx
+eas-cli@25.2.0 login`), configura la URL pública de la API y configura las
+credenciales Android de EAS una vez.
+Para generarlo localmente desde PowerShell:
+
+```powershell
+$env:EXPO_PUBLIC_API_URL = "https://tu-api.azurewebsites.net/api"
+npx eas-cli build --platform android --profile preview
+```
+
+La descarga del APK requiere una cuenta EAS y una API ya desplegada.
 
 ---
 

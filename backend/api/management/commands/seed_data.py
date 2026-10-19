@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
-from api.models import Materia, Tutor, Disponibilidad, GrupoTutoria
+from backend.api.models import Materia, Tutor, Disponibilidad, GrupoTutoria, Tutoria
 import random
-from datetime import timedelta
+from datetime import date, datetime, time, timedelta
 
 class Command(BaseCommand):
     help = 'Crea datos de prueba: materias, tutores y disponibilidades'
@@ -91,7 +91,8 @@ class Command(BaseCommand):
                 }
             )
             if created:
-                user.set_password('tutor1234')
+                user.set_unusable_password()
+                user.is_active = False
                 user.save()
             
             # Crear tutor
@@ -133,23 +134,21 @@ class Command(BaseCommand):
         
         # Crear grupos de tutoría con cupos
         grupos_data = [
-            {'nombre': 'Cálculo I - Grupo 1', 'descripcion': 'Refuerzo semanal de límites, derivadas e integrales', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 0},
-            {'nombre': 'Álgebra Lineal - Grupo A', 'descripcion': 'Vectores, matrices y sistemas de ecuaciones', 'cupos': 12, 'modalidad': 'virtual', 'materia_idx': 2},
-            {'nombre': 'Programación Python - Nivel Básico', 'descripcion': 'Introducción a la programación con Python', 'cupos': 15, 'modalidad': 'hibrida', 'materia_idx': 6},
-            {'nombre': 'Inglés Conversacional - Grupo 2', 'descripcion': 'Práctica de conversación en inglés', 'cupos': 8, 'modalidad': 'virtual', 'materia_idx': 13},
-            {'nombre': 'Física I - Mecánica', 'descripcion': 'Mecánica clásica y movimiento', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 3},
-            {'nombre': 'Estadística Aplicada', 'descripcion': 'Estadística para ciencias sociales', 'cupos': 12, 'modalidad': 'virtual', 'materia_idx': 8},
-            {'nombre': 'Cálculo II - Series', 'descripcion': 'Series y funciones de varias variables', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 1},
-            {'nombre': 'Química General', 'descripcion': 'Principios fundamentales de química', 'cupos': 12, 'modalidad': 'presencial', 'materia_idx': 5},
+            {'nombre': 'Cálculo I - Grupo 1', 'descripcion': 'Refuerzo semanal de límites, derivadas e integrales', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 0, 'tutor_idx': 0},
+            {'nombre': 'Álgebra Lineal - Grupo A', 'descripcion': 'Vectores, matrices y sistemas de ecuaciones', 'cupos': 12, 'modalidad': 'virtual', 'materia_idx': 2, 'tutor_idx': 0},
+            {'nombre': 'Programación Python - Nivel Básico', 'descripcion': 'Introducción a la programación con Python', 'cupos': 15, 'modalidad': 'hibrida', 'materia_idx': 6, 'tutor_idx': 2},
+            {'nombre': 'Inglés Conversacional - Grupo 2', 'descripcion': 'Práctica de conversación en inglés', 'cupos': 8, 'modalidad': 'virtual', 'materia_idx': 13, 'tutor_idx': 8},
+            {'nombre': 'Física I - Mecánica', 'descripcion': 'Mecánica clásica y movimiento', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 3, 'tutor_idx': 1},
+            {'nombre': 'Estadística Aplicada', 'descripcion': 'Estadística para ciencias sociales', 'cupos': 12, 'modalidad': 'virtual', 'materia_idx': 8, 'tutor_idx': 4},
+            {'nombre': 'Cálculo II - Series', 'descripcion': 'Series y funciones de varias variables', 'cupos': 10, 'modalidad': 'presencial', 'materia_idx': 1, 'tutor_idx': 0},
+            {'nombre': 'Química General', 'descripcion': 'Principios fundamentales de química', 'cupos': 12, 'modalidad': 'presencial', 'materia_idx': 5, 'tutor_idx': 3},
         ]
         
         grupos_creados = 0
         for grupo_data in grupos_data:
-            tutor_asignado = random.choice(tutores_creados)
             materia_asignada = materias[grupo_data['materia_idx']]
-            
-            if materia_asignada not in tutor_asignado.materias.all():
-                continue
+            tutor_asignado = tutores_creados[grupo_data['tutor_idx']]
+            tutor_asignado.materias.add(materia_asignada)
             
             fecha_inicio = timezone.now() + timedelta(days=random.randint(1, 14), hours=random.randint(8, 18))
             fecha_fin = fecha_inicio + timedelta(hours=2)
@@ -173,9 +172,55 @@ class Command(BaseCommand):
             if created:
                 grupos_creados += 1
                 self.stdout.write(f'[OK] Creado grupo: {grupo_data["nombre"]} - {grupo_data["cupos"]} cupos\n')
+
+        estudiante_demo, estudiante_creado = User.objects.get_or_create(
+            username='demo_estudiante',
+            defaults={
+                'first_name': 'Estudiante',
+                'last_name': 'Demostración',
+                'email': 'demo.estudiante@example.invalid',
+                'is_active': False,
+            },
+        )
+        if estudiante_creado:
+            estudiante_demo.set_unusable_password()
+            estudiante_demo.save()
+
+        hoy = timezone.localdate()
+        indice_mes_actual = hoy.year * 12 + hoy.month - 1
+        estados_demo = ['completada', 'confirmada', 'pendiente', 'cancelada', 'completada', 'completada']
+        tutorias_creadas = 0
+        for desplazamiento, estado in enumerate(estados_demo):
+            indice_mes = indice_mes_actual - desplazamiento
+            anio, mes_cero_based = divmod(indice_mes, 12)
+            fecha = date(anio, mes_cero_based + 1, 15)
+            fecha_inicio = timezone.make_aware(
+                datetime.combine(fecha, time(hour=14))
+            )
+            tutor = tutores_creados[desplazamiento]
+            materia = tutor.materias.first()
+            if materia is None:
+                continue
+            tutoria, created = Tutoria.objects.get_or_create(
+                estudiante=estudiante_demo,
+                tutor=tutor,
+                defaults={
+                    'materia': materia,
+                    'fecha_inicio': fecha_inicio,
+                    'duracion_minutos': 60,
+                    'estado': estado,
+                    'descripcion': 'Registro ficticio para demostración del prototipo.',
+                    'lugar': 'Universidad de Cundinamarca',
+                },
+            )
+            if created:
+                Tutoria.objects.filter(pk=tutoria.pk).update(
+                    creado_en=fecha_inicio
+                )
+                tutorias_creadas += 1
         
         self.stdout.write('\n[OK] Datos de prueba creados exitosamente!\n')
         self.stdout.write(f'   - {len(materias)} materias\n')
         self.stdout.write(f'   - {len(tutores_creados)} tutores\n')
         self.stdout.write(f'   - {grupos_creados} grupos de tutoría\n')
-        self.stdout.write('\nNota: La contraseña de todos los tutores es: tutor1234\n')
+        self.stdout.write(f'   - {tutorias_creadas} tutorías ficticias\n')

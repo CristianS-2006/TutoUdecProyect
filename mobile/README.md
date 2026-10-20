@@ -96,17 +96,22 @@ src/config.js
 Por defecto usa `DEFAULT_LAN_HOST = '192.168.1.7'`. Cambiar por la IP de tu PC.
 
 El proyecto EAS `@cristian.123/tutoudec` ya está creado y vinculado en
-`app.config.js`. Para crear un APK de prueba, inicia sesión en la CLI (`npx
-eas-cli@25.2.0 login`), configura la URL pública de la API y configura las
-credenciales Android de EAS una vez.
-Para generarlo localmente desde PowerShell:
+`app.config.js`. El workflow `Build TutoUdec Android APK` necesita el secreto
+de GitHub Actions `EXPO_TOKEN` y la variable `EXPO_PUBLIC_API_URL`. Ejecútalo
+manualmente desde GitHub Actions; construye el APK en un runner Linux y
+publica el artefacto `tutoudec-android-apk` (disponible durante 14 días).
+Las credenciales Android se administran en Expo.
 
-```powershell
-$env:EXPO_PUBLIC_API_URL = "https://tu-api.azurewebsites.net/api"
-npx eas-cli build --platform android --profile preview
+Para generar un APK localmente desde Linux o macOS, con Java y Android SDK/NDK
+instalados:
+
+```bash
+EXPO_PUBLIC_API_URL="https://tu-api.example.com/api" \
+npx eas-cli@25.2.0 build --local --platform android --profile preview --output ./tutoudec.apk
 ```
 
-La descarga del APK requiere una cuenta EAS y una API ya desplegada.
+El build local requiere acceso a Expo para obtener las credenciales de firma y
+una API ya desplegada.
 
 ---
 

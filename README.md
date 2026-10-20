@@ -167,12 +167,13 @@ La web se construye desde `web/` con `npm ci && npm run build` y publica
 `web/dist`; configura `VITE_API_URL` con la URL HTTPS de la API terminada en
 `/api`.
 
-Para generar el APK, inicia sesión en Expo con `npx eas-cli@25.2.0 login`,
-configura una vez las credenciales Android de EAS y agrega el secreto
-`EXPO_TOKEN` y la variable `EXPO_PUBLIC_API_URL` con la misma URL de API. El
-proyecto EAS `@cristian.123/tutoudec` ya está creado y su ID está incluido en
-la configuración móvil. El workflow manual `Build TutoUdec Android APK`
-produce un APK compartible con el perfil `preview`.
+Para generar el APK, configura el secreto de GitHub Actions `EXPO_TOKEN` y la
+variable `EXPO_PUBLIC_API_URL` con la misma URL HTTPS de la API. El proyecto
+EAS `@cristian.123/tutoudec` ya está creado y vinculado; sus credenciales
+Android se administran en Expo. Ejecuta manualmente `Build TutoUdec Android
+APK` desde GitHub Actions y descarga el artefacto `tutoudec-android-apk`. La
+compilación se realiza en el runner Linux de GitHub para evitar la cola de
+compilación gratuita de EAS.
 
 Los enlaces de la web y el APK solo deben anunciarse después de comprobar
 que los despliegues públicos están operativos.

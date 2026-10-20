@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TutoUdec",
-    "slug": "tutoudec-mobile",
+    "slug": "tutoudec",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "tutoudec",

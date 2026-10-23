@@ -135,6 +135,20 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
           <View style={styles.inputContainer}>
+            <Text style={styles.label}>CONFIRMAR CONTRASEÑA</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="********"
+                placeholderTextColor="#999"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>TIPO DE USUARIO</Text>
             <View style={styles.roleToggle}>
               <TouchableOpacity

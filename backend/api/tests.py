@@ -105,3 +105,29 @@ class DashboardAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.student)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class ChatbotAPITestCase(APITestCase):
+    url = '/api/chatbot/chat/'
+
+    def ask(self, message, **extra):
+        return self.client.post(self.url, {'message': message, **extra}, format='json')
+
+    def test_rejects_empty_message(self):
+        self.assertEqual(self.ask('   ').status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_university_questions(self):
+        cases = {
+            'que es la udec': 'universidad',
+            'como me inscribo en la universidad': 'admision_universidad',
+            'hay gratuidad': 'gratuidad',
+            'quien es el rector': 'directivos',
+        }
+        for message, intent in cases.items():
+            self.assertEqual(self.ask(message).data['intent'], intent, message)
+
+    def test_unknown_question_admits_ignorance(self):
+        data = self.ask('cual es el clima en marte').data
+        self.assertEqual(data['intent'], 'default')
+        self.assertIn('No tengo informaci', data['bot_response'])
+        self.assertTrue(data['suggestions'])

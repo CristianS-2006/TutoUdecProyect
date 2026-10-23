@@ -8,6 +8,7 @@ import Sesion from '../components/Pages/Sesion.vue';
 import Formulario from '../components/Pages/Formulario.vue';
 import TutoresView from '../views/TutoresView.vue';
 import MateriasView from '../views/MateriasView.vue';
+import ChatbotView from '../views/ChatbotView.vue';
 import TutoriasView from '../views/TutoriasView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -45,6 +46,11 @@ const router = createRouter({
           path: 'materias',
           name: 'materias',
           component: MateriasView,
+        },
+        {
+          path: 'chatbot',
+          name: 'chatbot',
+          component: ChatbotView,
         },
         {
           path: 'tutorias',

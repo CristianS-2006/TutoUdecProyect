@@ -24,6 +24,9 @@
                             <li>
                                 <router-link to="/materias">Materias</router-link>
                             </li>
+                            <li>
+                                <router-link to="/chatbot">Chatbot</router-link>
+                            </li>
                             <li v-if="auth.isAuthenticated">
                                 <router-link to="/tutorias">Mis tutorías</router-link>
                             </li>

@@ -851,13 +851,19 @@ class ChatbotViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        intent = self.classify_intent(user_message)
-        response = self.get_response(intent)
-        
+        from .chatbot_engine import respond
+        history = request.data.get('history') or []
+        if not isinstance(history, list):
+            history = []
+        response, intent, suggestions = respond(
+            user_message[:1000], [h for h in history[-6:] if isinstance(h, dict)]
+        )
+
         return Response({
             'user_message': user_message,
             'bot_response': response,
-            'intent': intent
+            'intent': intent,
+            'suggestions': suggestions
         })
 
     @action(detail=False, methods=['get'])

@@ -65,12 +65,17 @@ export default function ChatbotScreen({ navigation }) {
     setLoading(true);
 
     try {
-      const response = await api.post('/chatbot/chat/', { message: text.trim() });
+      const history = messages
+        .filter((m) => m.intent)
+        .slice(-6)
+        .map((m) => ({ intent: m.intent }));
+      const response = await api.post('/chatbot/chat/', { message: text.trim(), history });
       
       const botMessage = {
         id: (Date.now() + 1).toString(),
         text: response.data.bot_response,
         sender: 'bot',
+        intent: response.data.intent,
         time: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
       };
 

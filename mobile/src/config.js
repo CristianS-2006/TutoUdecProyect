@@ -10,6 +10,9 @@ import { Platform } from 'react-native';
 /** IP de respaldo si Expo no expone hostUri (dispositivo físico en LAN). */
 const DEFAULT_LAN_HOST = '192.168.1.7';
 
+/** Respaldo para builds de release sin variable de entorno. */
+const PRODUCTION_API_URL = 'https://tutoudec-api-cristian.onrender.com/api';
+
 /** Resuelve host para construir URL cuando no hay variable de entorno explícita. */
 function resolveHost() {
   const extraUrl = Constants.expoConfig?.extra?.apiUrl;
@@ -41,6 +44,9 @@ export function getApiBaseUrl() {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL;
   if (fromEnv) {
     return fromEnv.replace(/\/$/, '');
+  }
+  if (!__DEV__) {
+    return PRODUCTION_API_URL;
   }
   const host = resolveHost();
   return `http://${host}:8000/api`;

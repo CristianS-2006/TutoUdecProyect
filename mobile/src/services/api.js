@@ -11,7 +11,8 @@ const API_URL = getApiBaseUrl();
 // Cliente HTTP único para toda la app móvil.
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  // Render Free tarda hasta ~60 s en despertar tras inactividad.
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

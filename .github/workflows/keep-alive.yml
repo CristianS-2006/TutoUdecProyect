@@ -1,0 +1,13 @@
+name: Keep API awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API
+        run: curl -sS -m 90 -o /dev/null -w "%{http_code} %{time_total}s\n" https://tutoudec-api-cristian.onrender.com/api/chatbot/quick_questions/

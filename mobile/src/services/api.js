@@ -74,6 +74,9 @@ api.interceptors.response.use(
 export default api;
 export { API_URL, TOKEN_KEY, REFRESH_KEY };
 
+// Despierta el servidor (Render gratis se duerme) apenas abre la app, sin bloquear la interfaz.
+api.get('/chatbot/quick_questions/', { skipAuth: true, timeout: 90000 }).catch(() => {});
+
 export const authService = {
   // Endpoints de autenticación y perfil.
   login: (credentials) => api.post('/auth/login/', credentials),

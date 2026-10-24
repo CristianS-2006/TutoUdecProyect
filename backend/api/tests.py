@@ -165,3 +165,54 @@ class AuthFlowAPITestCase(APITestCase):
         User.objects.create_user('bea', 'bea@udec.edu.co', 'Vieja1234')
         resp = self.client.post('/api/auth/request_password_reset/', {'identifier': 'bea@udec.edu.co'}, format='json')
         self.assertNotIn('reset_token', resp.data)
+
+
+class AgendaMensualTestCase(APITestCase):
+    def setUp(self):
+        from datetime import time
+        from .models import Disponibilidad
+        self.materia = Materia.objects.create(nombre='Cálculo', descripcion='Cálculo diferencial')
+        self.tutor_user = User.objects.create_user('prof', 'prof@udec.edu.co', 'Clave12345', first_name='Ana', last_name='Ruiz')
+        self.tutor = Tutor.objects.create(usuario=self.tutor_user, especialidad='Matemáticas', tarifa_por_hora=30000)
+        self.tutor.materias.add(self.materia)
+        for dia in range(7):
+            Disponibilidad.objects.create(tutor=self.tutor, dia_semana=dia, hora_inicio=time(8, 0), hora_fin=time(12, 0))
+        self.est = User.objects.create_user('est', 'est@udec.edu.co', 'Clave12345')
+        self.client.force_authenticate(self.est)
+
+    def _primer_horario(self):
+        from datetime import timedelta
+        mes = (timezone.localdate() + timedelta(days=40)).strftime('%Y-%m')
+        resp = self.client.get(f'/api/tutores/{self.tutor.id}/disponibilidad_mensual/?mes={mes}&duracion=60')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.data['dias'])
+        dia = resp.data['dias'][0]
+        return dia['fecha'], dia['horarios'][0]
+
+    def test_disponibilidad_mensual(self):
+        fecha, hora = self._primer_horario()
+        self.assertEqual(hora, '08:00')
+
+    def test_reserva_y_conflicto(self):
+        fecha, hora = self._primer_horario()
+        datos = {'tutor': self.tutor.id, 'materia': self.materia.id,
+                 'fecha_inicio': f'{fecha}T{hora}:00-05:00', 'duracion_minutos': 60, 'lugar': 'Biblioteca'}
+        r1 = self.client.post('/api/tutorias/', datos, format='json')
+        self.assertEqual(r1.status_code, 201, r1.data)
+        self.assertEqual(r1.data['estado'], 'pendiente')
+        self.assertIsNotNone(r1.data['fecha_fin'])
+        r2 = self.client.post('/api/tutorias/', datos, format='json')
+        self.assertEqual(r2.status_code, 400)
+        self.assertEqual(len(self.client.get('/api/tutorias/mis_tutorias/').data), 1)
+
+    def test_rechaza_pasado(self):
+        datos = {'tutor': self.tutor.id, 'materia': self.materia.id,
+                 'fecha_inicio': '2020-01-01T09:00:00-05:00', 'duracion_minutos': 60}
+        self.assertEqual(self.client.post('/api/tutorias/', datos, format='json').status_code, 400)
+
+    def test_materia_con_valoracion(self):
+        resp = self.client.get(f'/api/materias/{self.materia.id}/')
+        self.assertEqual(resp.data['total_tutores'], 1)
+        self.assertEqual(resp.data['valoracion'], 5.0)
+        det = self.client.get(f'/api/tutores/{self.tutor.id}/')
+        self.assertEqual(det.data['usuario_nombre'], 'Ana Ruiz')

@@ -80,6 +80,8 @@ export const tutorService = {
   getEstadisticas: (id) => api.get(`/tutores/${id}/estadisticas/`),
   getTutorias: (id, params) =>
     api.get(`/tutores/${id}/tutorias/`, { params }),
+  disponibilidadMensual: (id, mes, duracion = 60) =>
+    api.get(`/tutores/${id}/disponibilidad_mensual/`, { params: { mes, duracion } }),
 };
 
 export const materiaService = {

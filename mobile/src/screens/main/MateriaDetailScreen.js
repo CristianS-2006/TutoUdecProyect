@@ -99,14 +99,14 @@ export default function MateriaDetailScreen({ route, navigation }) {
               <Text style={styles.statText}>{tutores.length} tutores</Text>
             </View>
             <View style={styles.stat}>
-              <MaterialCommunityIcons name="clock" size={20} color="#34A853" />
-              <Text style={styles.statText}>Disponible</Text>
+              <MaterialCommunityIcons name="star" size={20} color="#FBC02D" />
+              <Text style={styles.statText}>{Number(materia.valoracion ?? 0).toFixed(1)} valoración</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle}>Tutores Disponibles</Text>
+          <Text style={styles.sectionTitle}>Tutores disponibles</Text>
         </View>
 
         {tutores.length === 0 ? (
@@ -120,6 +120,7 @@ export default function MateriaDetailScreen({ route, navigation }) {
               key={tutor.id}
               style={styles.tutorCard}
               activeOpacity={0.9}
+              onPress={() => navigation.navigate('TutorDetail', { tutorId: tutor.id })}
             >
               <View style={styles.tutorAvatar}>
                 <MaterialCommunityIcons name="account" size={28} color={C.primary} />
@@ -133,12 +134,12 @@ export default function MateriaDetailScreen({ route, navigation }) {
                     {Number(tutor.calificacion ?? 0).toFixed(1)}
                   </Text>
                   <Text style={styles.tarifaText}>
-                    ${tutor.tarifa_por_hora ?? 0}/hora
+                    ${Number(tutor.tarifa_por_hora ?? 0).toLocaleString('es-CO')}/hora
                   </Text>
                 </View>
               </View>
               <View style={styles.nivelBadge}>
-                <Text style={styles.nivelText}>{tutor.nivel_experiencia || 'Intermedio'}</Text>
+                <Text style={styles.nivelText}>{tutor.nivel_experiencia || 'intermedio'}</Text>
               </View>
             </TouchableOpacity>
           ))

@@ -12,8 +12,10 @@ from django.db.models import Avg, Count
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
+from rest_framework.exceptions import ValidationError
+from . import agenda
 from .models import Tutor, Materia, Tutoria, Disponibilidad, Resena, PasswordResetToken, UserProfile, GrupoTutoria, InscripcionGrupo
 from .serializers import (
     TutorSerializer, TutorListSerializer, MateriaSerializer,
@@ -413,6 +415,23 @@ class TutorViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
     
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny])
+    def disponibilidad_mensual(self, request, pk=None):
+        """Horarios libres del tutor en un mes (?mes=YYYY-MM&duracion=60)"""
+        tutor = self.get_object()
+        hoy = timezone.localdate()
+        try:
+            anio, mes = [int(x) for x in request.query_params.get('mes', hoy.strftime('%Y-%m')).split('-')]
+            date(anio, mes, 1)
+            duracion = int(request.query_params.get('duracion', 60))
+        except (ValueError, TypeError):
+            return Response({'detail': 'Parámetros inválidos. Usa mes=YYYY-MM y duracion en minutos.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if duracion < 15 or duracion > 240:
+            return Response({'detail': 'La duración debe estar entre 15 y 240 minutos.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(agenda.disponibilidad_mensual(tutor, anio, mes, duracion))
+
     @action(detail=True, methods=['get'])
     def tutorias(self, request, pk=None):
         """Obtener todas las tutorías de un tutor"""
@@ -495,13 +514,22 @@ class TutoriaViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        """Al crear una tutoría, calcular la tarifa y asignar estudiante"""
+        """Al crear una tutoría, validar el horario, calcular la tarifa y asignar estudiante"""
         # El estudiante autenticado puede registrar su propia tutoría.
         # Si quien crea es admin, puede asignar explícitamente otro estudiante.
-        if self.request.user.is_staff and serializer.validated_data.get('estudiante'):
-            tutoria = serializer.save()
+        datos = serializer.validated_data
+        es_admin = self.request.user.is_staff
+        if not es_admin:
+            error = agenda.validar_reserva(
+                datos['tutor'], self.request.user, datos['fecha_inicio'], datos['duracion_minutos']
+            )
+            if error:
+                raise ValidationError({'detail': error})
+        extra = {'fecha_fin': datos['fecha_inicio'] + timedelta(minutes=datos['duracion_minutos'])}
+        if es_admin and datos.get('estudiante'):
+            tutoria = serializer.save(**extra)
         else:
-            tutoria = serializer.save(estudiante=self.request.user)
+            tutoria = serializer.save(estudiante=self.request.user, **extra)
         if not tutoria.tarifa and tutoria.tutor.tarifa_por_hora:
             duracion_horas = Decimal(tutoria.duracion_minutos) / Decimal(60)
             tutoria.tarifa = tutoria.tutor.tarifa_por_hora * duracion_horas

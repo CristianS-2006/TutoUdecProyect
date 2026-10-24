@@ -85,19 +85,23 @@ export default function TutoresScreen({ navigation, route }) {
         </View>
         <View style={styles.infoBox}>
           <View style={styles.nameRow}>
-            <Text style={styles.tutorNameLarge}>{item.usuario_nombre || 'Elena Rodriguez'}</Text>
+            <Text style={styles.tutorNameLarge}>{item.usuario_nombre || 'Tutor'}</Text>
             <View style={styles.ratingBoxSmall}>
               <MaterialCommunityIcons name="star" size={12} color="#FBC02D" />
-              <Text style={styles.ratingTextSmall}>{Number(item.calificacion ?? 4.9).toFixed(1)}</Text>
+              <Text style={styles.ratingTextSmall}>{Number(item.calificacion ?? 0).toFixed(1)}</Text>
             </View>
           </View>
-          <Text style={styles.specialtyText}>{item.especialidad || 'Mathematics Specialist'}</Text>
+          <Text style={styles.specialtyText}>{item.especialidad || 'Tutor general'}</Text>
           <Text style={styles.bioText} numberOfLines={3}>
-            {item.bio || 'Expert in differential calculus and linear algebra with over 3 years of experience...'}
+            {item.bio || 'Este tutor aún no ha agregado una descripción.'}
           </Text>
           <View style={styles.tagRowLarge}>
-            <View style={styles.tagPill}><Text style={styles.tagPillText}>Engineering</Text></View>
-            <View style={[styles.tagPill, { backgroundColor: '#F0F0F0' }]}><Text style={[styles.tagPillText, { color: '#666' }]}>Spanish</Text></View>
+            {(item.materias_nombres || []).slice(0, 2).map((n) => (
+              <View key={n} style={styles.tagPill}><Text style={styles.tagPillText}>{n}</Text></View>
+            ))}
+            <View style={[styles.tagPill, { backgroundColor: '#F0F0F0' }]}>
+              <Text style={[styles.tagPillText, { color: '#666' }]}>${Number(item.tarifa_por_hora ?? 0).toLocaleString('es-CO')}/h</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -106,7 +110,7 @@ export default function TutoresScreen({ navigation, route }) {
         activeOpacity={0.9}
         onPress={() => navigation.navigate('TutorDetail', { tutorId: item.id })}
       >
-        <Text style={styles.viewProfileBtnTextLarge}>View Profile</Text>
+        <Text style={styles.viewProfileBtnTextLarge}>Ver perfil</Text>
       </TouchableOpacity>
     </View>
   );
@@ -120,13 +124,13 @@ export default function TutoresScreen({ navigation, route }) {
         onPressBell={() => {}}
       />
 
-      <Text style={styles.h2}>Find your Tutor</Text>
+      <Text style={styles.h2}>Encuentra tu tutor</Text>
 
       <View style={styles.searchWrap}>
         <MaterialCommunityIcons name="magnify" size={22} color="#999" style={{ marginLeft: 16 }} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Subject, name..."
+          placeholder="Materia, nombre..."
           placeholderTextColor="#999"
           value={query}
           onChangeText={setQuery}
@@ -136,7 +140,7 @@ export default function TutoresScreen({ navigation, route }) {
 
       <View style={styles.chips}>
         <View style={styles.chipPrimary}>
-          <Text style={styles.chipPrimaryText}>{query.trim() || 'All'}</Text>
+          <Text style={styles.chipPrimaryText}>{query.trim() || 'Todos'}</Text>
           {query.trim() ? (
             <TouchableOpacity onPress={() => setQuery('')}>
               <MaterialCommunityIcons name="close" size={18} color="#fff" />
@@ -145,13 +149,13 @@ export default function TutoresScreen({ navigation, route }) {
         </View>
         <TouchableOpacity style={styles.chipGhost} onPress={() => navigation.navigate('Materias')}>
           <MaterialCommunityIcons name="filter-variant" size={18} color="#666" />
-          <Text style={styles.chipGhostText}>Filters</Text>
+          <Text style={styles.chipGhostText}>Materias</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.countRow}>
-        <Text style={styles.count}>{tutores.length} TUTORS AVAILABLE</Text>
-        <Text style={styles.sort}>Sort by: Relevance</Text>
+        <Text style={styles.count}>{tutores.length} TUTORES DISPONIBLES</Text>
+        <Text style={styles.sort}>Orden: mejor calificados</Text>
       </View>
 
       {loading && tutores.length === 0 ? (
@@ -164,7 +168,7 @@ export default function TutoresScreen({ navigation, route }) {
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
-            <Text style={styles.empty}>No tutors found. Try another search.</Text>
+            <Text style={styles.empty}>No se encontraron tutores. Prueba otra búsqueda.</Text>
           }
         />
       )}

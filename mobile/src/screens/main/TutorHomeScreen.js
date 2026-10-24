@@ -69,9 +69,9 @@ export default function TutorHomeScreen({ navigation }) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View style={styles.header}>
-        <Text style={styles.welcomeKicker}>WELCOME BACK,</Text>
-        <Text style={styles.welcomeName}>Professor {user?.first_name || user?.username || 'Tutor'}</Text>
-        <Text style={styles.subtitle}>Academic excellence starts with your guidance.</Text>
+        <Text style={styles.welcomeKicker}>BIENVENIDO DE NUEVO,</Text>
+        <Text style={styles.welcomeName}>Profesor {user?.first_name || user?.username || 'Tutor'}</Text>
+        <Text style={styles.subtitle}>La excelencia académica empieza con tu guía.</Text>
       </View>
 
       <View style={styles.availabilityRow}>
@@ -83,7 +83,7 @@ export default function TutorHomeScreen({ navigation }) {
           >
             <View style={[styles.toggleThumb, available && styles.toggleThumbActive]} />
           </TouchableOpacity>
-          <Text style={styles.availabilityText}>{available ? 'Available for sessions' : 'Offline'}</Text>
+          <Text style={styles.availabilityText}>{available ? 'Disponible para tutorías' : 'No disponible'}</Text>
         </View>
         <MaterialCommunityIcons name="bell-outline" size={24} color="#333" />
       </View>
@@ -95,13 +95,13 @@ export default function TutorHomeScreen({ navigation }) {
             <Text style={styles.statBadge}>TOTAL</Text>
           </View>
           <Text style={styles.statNumber}>{stats.tutorias}</Text>
-          <Text style={styles.statLabel}>Students Tutored</Text>
+          <Text style={styles.statLabel}>Tutorías realizadas</Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: '#006D32' }]}>
           <MaterialCommunityIcons name="timer-outline" size={24} color="#fff" />
           <Text style={[styles.statNumber, { color: '#fff', marginTop: 12 }]}>{stats.hours}</Text>
-          <Text style={[styles.statLabel, { color: 'rgba(255,255,255,0.7)' }]}>Total Teaching Hours</Text>
+          <Text style={[styles.statLabel, { color: 'rgba(255,255,255,0.7)' }]}>Horas totales de enseñanza</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -114,32 +114,32 @@ export default function TutorHomeScreen({ navigation }) {
             </View>
           </View>
           <Text style={styles.statNumber}>{Number(stats.rating).toFixed(1)}</Text>
-          <Text style={styles.statLabel}>Average Rating</Text>
+          <Text style={styles.statLabel}>Calificación promedio</Text>
         </View>
       </View>
 
       <View style={styles.sectionHead}>
-        <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
+        <Text style={styles.sectionTitle}>Próximas sesiones</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Tutorias')}>
-          <Text style={styles.link}>View Calendar</Text>
+          <Text style={styles.link}>Ver calendario</Text>
         </TouchableOpacity>
       </View>
 
       {upcoming.length === 0 ? (
-        <Text style={styles.emptyHint}>No upcoming sessions for today.</Text>
+        <Text style={styles.emptyHint}>No tienes sesiones próximas.</Text>
       ) : (
         upcoming.map((item) => {
           const d = item.fecha_inicio ? new Date(item.fecha_inicio) : null;
           const dateStr = d ? d.toLocaleDateString('es-CO', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-          const timeStr = d ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
+          const timeStr = d ? d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
 
           return (
             <View key={item.id} style={styles.sessionCard}>
               <View style={styles.sessionCardTop}>
                 <View style={styles.studentAvatar} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.studentName}>{item.estudiante_nombre || 'Student'}</Text>
-                  <Text style={styles.subjectTag}>{item.materia_nombre?.toUpperCase() || 'SUBJECT'}</Text>
+                  <Text style={styles.studentName}>{item.estudiante_nombre || 'Estudiante'}</Text>
+                  <Text style={styles.subjectTag}>{item.materia_nombre?.toUpperCase() || 'MATERIA'}</Text>
                 </View>
                 <View style={styles.dateTimeBox}>
                   <Text style={styles.sessionDate}>{dateStr}</Text>
@@ -148,10 +148,10 @@ export default function TutorHomeScreen({ navigation }) {
               </View>
               <View style={styles.sessionCardBtns}>
                 <TouchableOpacity style={styles.rescheduleBtn}>
-                  <Text style={styles.rescheduleBtnText}>Reschedule</Text>
+                  <Text style={styles.rescheduleBtnText}>Reprogramar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('Tutorias')}>
-                  <Text style={styles.startBtnText}>Start Session</Text>
+                  <Text style={styles.startBtnText}>Ver sesión</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -161,12 +161,12 @@ export default function TutorHomeScreen({ navigation }) {
 
       <View style={styles.helpCenter}>
         <View style={styles.helpTextContainer}>
-          <Text style={styles.helpTitle}>Tutor Help Center</Text>
+          <Text style={styles.helpTitle}>Centro de ayuda para tutores</Text>
           <Text style={styles.helpDesc}>
-            Access pedagogy resources, manage your payment methods, or contact technical support for your digital classroom.
+            Consulta recursos pedagógicos, resuelve tus dudas o habla con el asistente de TutoUdec.
           </Text>
           <TouchableOpacity style={styles.helpBtn}>
-            <Text style={styles.helpBtnText}>Get Support Now →</Text>
+            <Text style={styles.helpBtnText}>Obtener ayuda →</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.helpIconBox}>

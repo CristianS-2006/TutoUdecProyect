@@ -214,14 +214,14 @@ export default function TutoriasScreen({ navigation }) {
                 <Text style={styles.durTxtSmall}>{item.duracion_minutos || 60}MIN</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.agendaNameLarge}>{item.materia_nombre || 'Tutoria'}</Text>
+                <Text style={styles.agendaNameLarge}>{item.materia_nombre || 'Tutoría'}</Text>
                 <View style={styles.locationRow}>
                   <MaterialCommunityIcons 
                     name={isOnline ? "video-outline" : "map-marker-outline"} 
                     size={14} 
                     color="#34A853" 
                   />
-                  <Text style={styles.agendaMetaSmall}>{item.lugar || 'UDEC Campus'}</Text>
+                  <Text style={styles.agendaMetaSmall}>{item.lugar || 'Campus UdeC'}</Text>
                   {isOnline && <View style={styles.onlineBadge}><Text style={styles.onlineBadgeText}>EN LÍNEA</Text></View>}
                 </View>
               </View>

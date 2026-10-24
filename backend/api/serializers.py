@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.db.models import Avg
 from .models import Tutor, Materia, Tutoria, Disponibilidad, Resena, GrupoTutoria, InscripcionGrupo
 
 
@@ -61,10 +62,12 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
 class MateriaSerializer(serializers.ModelSerializer):
     total_tutorias = serializers.SerializerMethodField()
+    total_tutores = serializers.SerializerMethodField()
+    valoracion = serializers.SerializerMethodField()
     
     class Meta:
         model = Materia
-        fields = ['id', 'nombre', 'descripcion', 'creado_en', 'total_tutorias']
+        fields = ['id', 'nombre', 'descripcion', 'creado_en', 'total_tutorias', 'total_tutores', 'valoracion']
         read_only_fields = ['id', 'creado_en']
 
     def to_internal_value(self, data):
@@ -85,9 +88,19 @@ class MateriaSerializer(serializers.ModelSerializer):
     def get_total_tutorias(self, obj):
         return obj.tutorias.count()
 
+    def get_total_tutores(self, obj):
+        return obj.tutores.count()
+
+    def get_valoracion(self, obj):
+        promedio = obj.tutores.aggregate(p=Avg('calificacion'))['p']
+        return round(float(promedio), 1) if promedio else 0.0
+
 
 class TutorSerializer(serializers.ModelSerializer):
     usuario = UserSerializer(read_only=True)
+    usuario_nombre = serializers.SerializerMethodField()
+    total_resenas = serializers.SerializerMethodField()
+    resenas = serializers.SerializerMethodField()
     usuario_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source='usuario',
@@ -109,12 +122,30 @@ class TutorSerializer(serializers.ModelSerializer):
             'id', 'usuario', 'usuario_id', 'especialidad', 'nivel_experiencia',
             'bio', 'tarifa_por_hora', 'calificacion', 'foto', 'teléfono',
             'disponible', 'materias', 'materias_ids', 'total_tutorias',
-            'promedio_calificacion', 'creado_en', 'actualizado_en'
+            'promedio_calificacion', 'creado_en', 'actualizado_en',
+            'usuario_nombre', 'total_resenas', 'resenas'
         ]
         read_only_fields = ['id', 'creado_en', 'actualizado_en']
     
     def get_total_tutorias(self, obj):
         return obj.tutorias.count()
+
+    def get_usuario_nombre(self, obj):
+        return obj.usuario.get_full_name() or obj.usuario.username
+
+    def get_total_resenas(self, obj):
+        return obj.resenas.count()
+
+    def get_resenas(self, obj):
+        return [
+            {
+                'estudiante': r.estudiante.get_full_name() or r.estudiante.username,
+                'calificacion': r.calificacion,
+                'comentario': r.comentario,
+                'creado_en': r.creado_en,
+            }
+            for r in obj.resenas.select_related('estudiante')[:5]
+        ]
 
 
 class TutoriaSerializer(serializers.ModelSerializer):
@@ -131,19 +162,24 @@ class TutoriaSerializer(serializers.ModelSerializer):
             'nota', 'creado_en', 'actualizado_en'
         ]
         read_only_fields = ['id', 'creado_en', 'actualizado_en']
+        extra_kwargs = {'estudiante': {'required': False}}
 
 
 class TutorListSerializer(serializers.ModelSerializer):
     """Serializer simplificado para listar tutores"""
     usuario_nombre = serializers.CharField(source='usuario.get_full_name', read_only=True)
     total_tutorias = serializers.SerializerMethodField()
+    materias_nombres = serializers.SerializerMethodField()
     
     class Meta:
         model = Tutor
         fields = [
-            'id', 'usuario_nombre', 'especialidad', 'nivel_experiencia',
-            'tarifa_por_hora', 'calificacion', 'disponible', 'total_tutorias'
+            'id', 'usuario_nombre', 'especialidad', 'nivel_experiencia', 'bio',
+            'tarifa_por_hora', 'calificacion', 'disponible', 'total_tutorias', 'materias_nombres'
         ]
+    
+    def get_materias_nombres(self, obj):
+        return [m.nombre for m in obj.materias.all()]
     
     def get_total_tutorias(self, obj):
         return obj.tutorias.filter(estado='completada').count()

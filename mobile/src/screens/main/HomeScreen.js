@@ -175,12 +175,12 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.sessionDia}>{dia}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sessionTitle}>{t.materia_nombre || 'Tutoria'}</Text>
+                <Text style={styles.sessionTitle}>{t.materia_nombre || 'Tutoría'}</Text>
                 <Text style={styles.sessionMeta}>
                   {d ? d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''} - {t.duracion_minutos ? new Date(d.getTime() + t.duracion_minutos*60000).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
                 </Text>
                 <Text style={styles.sessionMeta}>
-                  {t.lugar || 'Online'}
+                  {t.lugar || 'En línea'}
                 </Text>
               </View>
               <View style={{ alignItems: 'center', gap: 8 }}>

@@ -21,7 +21,7 @@ const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   // Se inyecta JWT en cada request autenticado.
-  const token = await AsyncStorage.getItem(TOKEN_KEY);
+  const token = config.skipAuth ? null : await AsyncStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

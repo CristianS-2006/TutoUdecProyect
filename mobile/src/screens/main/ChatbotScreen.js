@@ -30,7 +30,7 @@ export default function ChatbotScreen({ navigation }) {
 
   const loadQuickQuestions = async () => {
     try {
-      const response = await api.get('/chatbot/quick_questions/');
+      const response = await api.get('/chatbot/quick_questions/', { skipAuth: true });
       setQuickQuestions(response.data.quick_questions);
     } catch (error) {
       console.error('Error loading quick questions:', error);
@@ -69,7 +69,7 @@ export default function ChatbotScreen({ navigation }) {
         .filter((m) => m.intent)
         .slice(-6)
         .map((m) => ({ intent: m.intent }));
-      const response = await api.post('/chatbot/chat/', { message: text.trim(), history });
+      const response = await api.post('/chatbot/chat/', { message: text.trim(), history }, { skipAuth: true });
       
       const botMessage = {
         id: (Date.now() + 1).toString(),
@@ -174,9 +174,6 @@ export default function ChatbotScreen({ navigation }) {
       )}
 
       <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.attachBtn}>
-          <MaterialCommunityIcons name="attachment" size={24} color="#999" />
-        </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="Escribe tu mensaje..."

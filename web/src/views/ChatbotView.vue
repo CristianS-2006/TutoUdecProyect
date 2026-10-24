@@ -54,7 +54,9 @@ async function send(text) {
   loading.value = true;
   try {
     const { data } = await api.post('/chatbot/chat/', { message, history });
-    messages.value.push({ sender: 'bot', text: data.bot_response, intent: data.intent });
+    const followUp = data.response_json?.follow_up_question;
+    const text = followUp ? `${data.bot_response}\n\n${followUp}` : data.bot_response;
+    messages.value.push({ sender: 'bot', text, intent: data.intent });
     if (data.suggestions?.length) suggestions.value = data.suggestions;
   } catch {
     messages.value.push({ sender: 'bot', text: 'No pude conectarme con el servidor. Intenta de nuevo.' });

@@ -73,7 +73,9 @@ export default function ChatbotScreen({ navigation }) {
       
       const botMessage = {
         id: (Date.now() + 1).toString(),
-        text: response.data.bot_response,
+        text: response.data.response_json?.follow_up_question
+          ? `${response.data.bot_response}\n\n${response.data.response_json.follow_up_question}`
+          : response.data.bot_response,
         sender: 'bot',
         intent: response.data.intent,
         time: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),

@@ -202,10 +202,10 @@ class AuthViewSet(viewsets.ViewSet):
             print(f"  Token: {reset_token.token}")
             print("="*80 + "\n")
         
-        return Response(
-            {'detail': 'Si existe una cuenta asociada, recibirás las instrucciones'},
-            status=status.HTTP_200_OK
-        )
+        data = {'detail': 'Si existe una cuenta asociada, recibirás las instrucciones'}
+        if getattr(settings, 'PASSWORD_RESET_SHOW_TOKEN', False):
+            data['reset_token'] = str(reset_token.token)
+        return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def change_password(self, request):

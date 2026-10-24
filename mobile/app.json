@@ -19,9 +19,18 @@
       "adaptiveIcon": {
         "backgroundColor": "#007F3F"
       },
-      "package": "com.tutoudec.mobile",
-      "usesCleartextTraffic": true
+      "package": "com.tutoudec.mobile"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
     "extra": {
       "apiUrl": null
     }

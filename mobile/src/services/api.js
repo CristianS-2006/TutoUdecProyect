@@ -63,6 +63,9 @@ export const authService = {
   // Endpoints de autenticación y perfil.
   login: (credentials) => api.post('/auth/login/', credentials),
   register: (data) => api.post('/auth/register/', data),
+  requestPasswordReset: (identifier) => api.post('/auth/request_password_reset/', { identifier }),
+  confirmPasswordReset: (token, new_password) =>
+    api.post('/auth/confirm_password_reset/', { token, new_password }),
   getProfile: () => api.get('/auth/profile/'),
 };
 

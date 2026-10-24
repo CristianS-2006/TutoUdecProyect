@@ -13,29 +13,93 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { C } from '../../theme/colors';
+import { authService } from '../../services/api';
+
+function apiMessage(error, fallback) {
+  const data = error?.response?.data;
+  if (data?.detail) return String(data.detail);
+  if (error?.message === 'Network Error') return 'Sin conexión con el servidor.';
+  return fallback;
+}
 
 export default function ForgotPasswordScreen({ navigation }) {
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleReset() {
+  async function handleRequest() {
     if (!email.trim()) {
       Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
       return;
     }
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      Alert.alert(
-        'Correo enviado',
-        'Si existe una cuenta asociada a ese correo, recibirás las instrucciones para restablecer tu contraseña.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
-      );
+      const { data } = await authService.requestPasswordReset(email.trim());
+      if (data.reset_token) {
+        setToken(data.reset_token);
+        Alert.alert(
+          'Código generado',
+          'Tu código de recuperación ya se escribió en el siguiente paso. Define tu nueva contraseña.'
+        );
+      } else {
+        Alert.alert(
+          'Revisa tu correo',
+          'Si existe una cuenta asociada, recibirás un código. Pégalo en el siguiente paso.'
+        );
+      }
+      setStep(2);
     } catch (e) {
-      Alert.alert('Error', 'No se pudo enviar el correo');
+      Alert.alert('Error', apiMessage(e, 'No se pudo solicitar la recuperación'));
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleConfirm() {
+    if (!token.trim() || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Completa todos los campos');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.confirmPasswordReset(token.trim(), newPassword);
+      Alert.alert('Contraseña actualizada', 'Ya puedes iniciar sesión con tu nueva contraseña.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (e) {
+      Alert.alert('Error', apiMessage(e, 'No se pudo restablecer la contraseña'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function field(label, icon, props) {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{label}</Text>
+        <View style={styles.inputWrapper}>
+          <MaterialCommunityIcons name={icon} size={20} color="#999" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholderTextColor="#999"
+            autoCapitalize="none"
+            autoCorrect={false}
+            {...props}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -51,47 +115,73 @@ export default function ForgotPasswordScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={styles.title}>Recuperar Contraseña</Text>
           <Text style={styles.subtitle}>
-            Ingresa tu correo para recibir un enlace de recuperación.
+            {step === 1
+              ? 'Ingresa tu correo para recibir un código de recuperación.'
+              : 'Escribe el código y tu nueva contraseña.'}
           </Text>
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>CORREO ELECTRÓNICO</Text>
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="email-outline" size={20} color="#999" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="usuario@udec.edu.co"
-                placeholderTextColor="#999"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-              />
-            </View>
-          </View>
+          {step === 1 ? (
+            <>
+              {field('CORREO ELECTRÓNICO', 'email-outline', {
+                placeholder: 'usuario@udec.edu.co',
+                value: email,
+                onChangeText: setEmail,
+                keyboardType: 'email-address',
+              })}
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleRequest}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <View style={styles.buttonRow}>
+                    <Text style={styles.buttonText}>Enviar código</Text>
+                    <MaterialCommunityIcons name="send" size={20} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              {field('CÓDIGO DE RECUPERACIÓN', 'key-outline', {
+                placeholder: 'Código',
+                value: token,
+                onChangeText: setToken,
+              })}
+              {field('NUEVA CONTRASEÑA', 'lock-outline', {
+                placeholder: 'Mínimo 8 caracteres',
+                value: newPassword,
+                onChangeText: setNewPassword,
+                secureTextEntry: true,
+              })}
+              {field('CONFIRMAR CONTRASEÑA', 'lock-check-outline', {
+                placeholder: 'Repite la contraseña',
+                value: confirmPassword,
+                onChangeText: setConfirmPassword,
+                secureTextEntry: true,
+              })}
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleConfirm}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <View style={styles.buttonRow}>
+                    <Text style={styles.buttonText}>Cambiar contraseña</Text>
+                    <MaterialCommunityIcons name="check" size={20} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleReset}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View style={styles.buttonRow}>
-                <Text style={styles.buttonText}>Enviar enlace de recuperación</Text>
-                <MaterialCommunityIcons name="send" size={20} color="#fff" />
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <View style={styles.dashedBorder}>
               <Text style={styles.backText}>Volver al inicio de sesión</Text>
             </View>

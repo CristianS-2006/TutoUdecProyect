@@ -139,3 +139,29 @@ class ChatbotAPITestCase(APITestCase):
         self.assertIn('business_5_0', data['response_json'])
         self.assertIn('answer', data['response_json'])
         self.assertEqual(data['bot_response'], data['response_json']['answer'])
+
+class AuthFlowAPITestCase(APITestCase):
+    def test_register_tutor_and_student(self):
+        for role in ('estudiante', 'tutor'):
+            resp = self.client.post('/api/auth/register/', {
+                'username': f'u_{role}', 'email': f'{role}@udec.edu.co', 'password': 'Prueba123',
+                'first_name': 'Ana', 'last_name': 'Perez', 'role': role, 'especialidad': 'Matematicas',
+            }, format='json')
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Tutor.objects.filter(usuario__username='u_tutor').exists())
+
+    def test_password_reset_flow(self):
+        User.objects.create_user('ana', 'ana@udec.edu.co', 'Vieja1234')
+        with self.settings(PASSWORD_RESET_SHOW_TOKEN=True):
+            resp = self.client.post('/api/auth/request_password_reset/', {'identifier': 'ana@udec.edu.co'}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        token = resp.data['reset_token']
+        resp = self.client.post('/api/auth/confirm_password_reset/', {'token': token, 'new_password': 'Nueva1234'}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        login = self.client.post('/api/auth/login/', {'username': 'ana', 'password': 'Nueva1234'}, format='json')
+        self.assertEqual(login.status_code, 200)
+
+    def test_reset_token_hidden_by_default(self):
+        User.objects.create_user('bea', 'bea@udec.edu.co', 'Vieja1234')
+        resp = self.client.post('/api/auth/request_password_reset/', {'identifier': 'bea@udec.edu.co'}, format='json')
+        self.assertNotIn('reset_token', resp.data)

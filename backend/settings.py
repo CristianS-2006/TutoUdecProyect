@@ -262,3 +262,7 @@ else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_FROM_EMAIL = 'TutoUdec <tutoudec.soporte@gmail.com>'
+
+# Solo para demostración: devuelve el token de recuperación en la respuesta de la API
+# cuando no hay correo SMTP configurado. Mantener en False en producción real.
+PASSWORD_RESET_SHOW_TOKEN = os.getenv('PASSWORD_RESET_SHOW_TOKEN', 'False').lower() in ('true', '1', 'yes')

@@ -1,0 +1,25 @@
+{
+  "count": 25,
+  "next": "http://4.206.201.129/api/materias/?page=2&page_size=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 18,
+      "nombre": "Arquitectura de Computadores",
+      "descripcion": "Organización y arquitectura de sistemas",
+      "creado_en": "2026-10-23T19:44:34.895927-05:00",
+      "total_tutorias": 1,
+      "total_tutores": 4,
+      "valoracion": 5.0
+    },
+    {
+      "id": 19,
+      "nombre": "Bases de Datos",
+      "descripcion": "Diseño y administración de bases de datos",
+      "creado_en": "2026-10-23T19:44:34.899226-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 3,
+      "valoracion": 5.0
+    }
+  ]
+}

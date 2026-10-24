@@ -1,0 +1,36 @@
+{
+  "user_message": "¿Cuál es la capital de Japón?",
+  "bot_response": "No tengo información confiable sobre eso, y prefiero no inventarte una respuesta. 🙏\n\nPuedo ayudarte con TutoUdec (tutorías, materias, horarios, pagos, cuenta, ser tutor) y con información general de la Universidad de Cundinamarca. Para temas que no manejo, consulta www.ucundinamarca.edu.co o escribe a tutoudec.soporte@gmail.com.\n\n¿Quieres intentar con una de estas preguntas?",
+  "intent": "default",
+  "suggestions": [
+    "¿Qué es TutoUdec?",
+    "¿Qué es la UdeC?",
+    "¿Cómo agendo una tutoría?",
+    "¿Cuánto cuestan las tutorías?",
+    "¿Cómo contacto a soporte?"
+  ],
+  "response_json": {
+    "standard": "empresarial-5.0",
+    "mode": "rules",
+    "provider": "local",
+    "answer": "No tengo información confiable sobre eso, y prefiero no inventarte una respuesta. 🙏\n\nPuedo ayudarte con TutoUdec (tutorías, materias, horarios, pagos, cuenta, ser tutor) y con información general de la Universidad de Cundinamarca. Para temas que no manejo, consulta www.ucundinamarca.edu.co o escribe a tutoudec.soporte@gmail.com.\n\n¿Quieres intentar con una de estas preguntas?",
+    "follow_up_question": "¿Qué es TutoUdec?",
+    "unknown": true,
+    "confidence": 0.35,
+    "intent": "default",
+    "suggestions": [
+      "¿Qué es TutoUdec?",
+      "¿Qué es la UdeC?",
+      "¿Cómo agendo una tutoría?",
+      "¿Cuánto cuestan las tutorías?",
+      "¿Cómo contacto a soporte?"
+    ],
+    "business_5_0": {
+      "human_centered": "Respuesta pensada para estudiantes/tutores y siguiente paso accionable.",
+      "data_driven": "Basada en base de conocimiento interna y reglas verificables del proyecto.",
+      "sustainable": "Promueve soporte institucional y uso responsable de recursos académicos.",
+      "automation": "Clasificación de intención + sugerencias automáticas por contexto.",
+      "ethical_ai": "Si no hay dato confiable, reconoce límite y evita inventar información."
+    }
+  }
+}

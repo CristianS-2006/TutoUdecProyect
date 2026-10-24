@@ -1,0 +1,12 @@
+{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkyODk5MDU3LCJpYXQiOjE3OTI4MTI2NTcsImp0aSI6ImY1YTg1NDQxOTYyYTQ5NzJiNWQ4MmM0NWQxMjgzZjBmIiwidXNlcl9pZCI6MzF9.wvo1rHubf1uo8gtoR14bW5a4y8juXdfS-hZYZcrh5Lc",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc5MzQxNzQ1NywiaWF0IjoxNzkyODEyNjU3LCJqdGkiOiIyZWNlYTQ5MmY5ZGE0ZTEyOGUyYTk1MzQ1N2Q0MDVkYyIsInVzZXJfaWQiOjMxfQ.tLqm0cO6YBPyOVVstXpGMp_xhMhNWzksznls6645ULQ",
+  "user": {
+    "id": 31,
+    "username": "demo_estudiante",
+    "email": "demo_est@udec.edu.co",
+    "first_name": "Laura",
+    "last_name": "Gómez",
+    "role": "estudiante"
+  }
+}

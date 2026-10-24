@@ -1,0 +1,43 @@
+{
+  "count": 22,
+  "next": "http://4.206.201.129/api/tutores/?page=2&page_size=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 2,
+      "usuario_nombre": "Ana García",
+      "especialidad": "Física",
+      "nivel_experiencia": "avanzado",
+      "bio": "Tutor especializado en Física con experiencia en la Universidad de Cundinamarca.",
+      "tarifa_por_hora": "30000.00",
+      "calificacion": 5.0,
+      "disponible": true,
+      "total_tutorias": 0,
+      "materias_nombres": [
+        "Arquitectura de Computadores",
+        "Biología",
+        "Cálculo II",
+        "Estadística",
+        "Física I"
+      ]
+    },
+    {
+      "id": 1,
+      "usuario_nombre": "Carlos Rodríguez",
+      "especialidad": "Matemáticas",
+      "nivel_experiencia": "experto",
+      "bio": "Tutor especializado en Matemáticas con experiencia en la Universidad de Cundinamarca.",
+      "tarifa_por_hora": "35000.00",
+      "calificacion": 5.0,
+      "disponible": true,
+      "total_tutorias": 0,
+      "materias_nombres": [
+        "Cálculo I",
+        "Cálculo II",
+        "Física II",
+        "Inteligencia Artificial",
+        "Álgebra Lineal"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "user_message": "¿Dónde queda la sede principal de la Universidad de Cundinamarca?",
+  "bot_response": "Sedes de la UCundinamarca:\n• Fusagasugá (sede principal): Diagonal 18 No. 20-29.\n• Seccional Girardot: Carrera 19 No. 24-209, barrio Gaitán.\n• Seccional Ubaté: Calle 6 No. 9-80.\n• Extensión Chía: Autopista Chía–Cajicá, sector El Cuarenta.\n• Extensión Facatativá.\n• Extensión Soacha (se anunció una nueva sede).\n• Extensión Zipaquirá (sede de Música).\n\nLas más grandes por matrícula son Fusagasugá, Facatativá, Chía y Soacha. No tengo verificadas las direcciones exactas de Facatativá, Soacha y Zipaquirá; consúltalas en www.ucundinamarca.edu.co.\n\nTambién te puede interesar: La Universidad de Cundinamarca (UCundinamarca, también llamada UdeC) es una universidad pública del orden territorial (departamental), vinculada al Ministerio de Educación y parte del Sistema Universitario Estatal. Su sede principal está en Fusagasugá.\n\nNació en 1969 como Instituto Técnico Universitario de Cundinamarca (ITUC) y fue reconocida como universidad en 1992. Hoy tiene 1 sede principal, 2 seccionales (Girardot y Ubaté) y extensiones en Chía, Facatativá, Soacha y Zipaquirá, con cerca de 12.000 estudiantes (2024). Su lema es \"Ex umbra in solem\" (De la oscuridad a la luz).\n\nNo confundas: la Universidad Colegio Mayor de Cundinamarca es otra institución, en Bogotá.",
+  "intent": "sedes",
+  "suggestions": [
+    "¿Qué carreras hay por sede?",
+    "¿Cómo contacto a la universidad?"
+  ],
+  "response_json": {
+    "standard": "empresarial-5.0",
+    "mode": "rules",
+    "provider": "local",
+    "answer": "Sedes de la UCundinamarca:\n• Fusagasugá (sede principal): Diagonal 18 No. 20-29.\n• Seccional Girardot: Carrera 19 No. 24-209, barrio Gaitán.\n• Seccional Ubaté: Calle 6 No. 9-80.\n• Extensión Chía: Autopista Chía–Cajicá, sector El Cuarenta.\n• Extensión Facatativá.\n• Extensión Soacha (se anunció una nueva sede).\n• Extensión Zipaquirá (sede de Música).\n\nLas más grandes por matrícula son Fusagasugá, Facatativá, Chía y Soacha. No tengo verificadas las direcciones exactas de Facatativá, Soacha y Zipaquirá; consúltalas en www.ucundinamarca.edu.co.\n\nTambién te puede interesar: La Universidad de Cundinamarca (UCundinamarca, también llamada UdeC) es una universidad pública del orden territorial (departamental), vinculada al Ministerio de Educación y parte del Sistema Universitario Estatal. Su sede principal está en Fusagasugá.\n\nNació en 1969 como Instituto Técnico Universitario de Cundinamarca (ITUC) y fue reconocida como universidad en 1992. Hoy tiene 1 sede principal, 2 seccionales (Girardot y Ubaté) y extensiones en Chía, Facatativá, Soacha y Zipaquirá, con cerca de 12.000 estudiantes (2024). Su lema es \"Ex umbra in solem\" (De la oscuridad a la luz).\n\nNo confundas: la Universidad Colegio Mayor de Cundinamarca es otra institución, en Bogotá.",
+    "follow_up_question": "¿Qué carreras hay por sede?",
+    "unknown": false,
+    "confidence": 0.87,
+    "intent": "sedes",
+    "suggestions": [
+      "¿Qué carreras hay por sede?",
+      "¿Cómo contacto a la universidad?"
+    ],
+    "business_5_0": {
+      "human_centered": "Respuesta pensada para estudiantes/tutores y siguiente paso accionable.",
+      "data_driven": "Basada en base de conocimiento interna y reglas verificables del proyecto.",
+      "sustainable": "Promueve soporte institucional y uso responsable de recursos académicos.",
+      "automation": "Clasificación de intención + sugerencias automáticas por contexto.",
+      "ethical_ai": "Si no hay dato confiable, reconoce límite y evita inventar información."
+    }
+  }
+}

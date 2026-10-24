@@ -1,0 +1,73 @@
+{
+  "id": 1,
+  "usuario": {
+    "id": 2,
+    "username": "crodriguez",
+    "email": "crodriguez@udec.edu.co",
+    "first_name": "Carlos",
+    "last_name": "Rodríguez",
+    "role": "tutor"
+  },
+  "especialidad": "Matemáticas",
+  "nivel_experiencia": "experto",
+  "bio": "Tutor especializado en Matemáticas con experiencia en la Universidad de Cundinamarca.",
+  "tarifa_por_hora": "35000.00",
+  "calificacion": 5.0,
+  "foto": null,
+  "teléfono": null,
+  "disponible": true,
+  "materias": [
+    {
+      "id": 1,
+      "nombre": "Cálculo I",
+      "descripcion": "Cálculo diferencial e integral de funciones de una variable",
+      "creado_en": "2026-10-23T19:44:34.838575-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 3,
+      "valoracion": 5.0
+    },
+    {
+      "id": 2,
+      "nombre": "Cálculo II",
+      "descripcion": "Cálculo de funciones de varias variables y series",
+      "creado_en": "2026-10-23T19:44:34.843777-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 3,
+      "valoracion": 5.0
+    },
+    {
+      "id": 5,
+      "nombre": "Física II",
+      "descripcion": "Electromagnetismo y óptica",
+      "creado_en": "2026-10-23T19:44:34.854583-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 4,
+      "valoracion": 5.0
+    },
+    {
+      "id": 23,
+      "nombre": "Inteligencia Artificial",
+      "descripcion": "Fundamentos de IA y machine learning",
+      "creado_en": "2026-10-23T19:44:34.912763-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 3,
+      "valoracion": 5.0
+    },
+    {
+      "id": 3,
+      "nombre": "Álgebra Lineal",
+      "descripcion": "Vectores, matrices, sistemas de ecuaciones lineales",
+      "creado_en": "2026-10-23T19:44:34.846592-05:00",
+      "total_tutorias": 0,
+      "total_tutores": 6,
+      "valoracion": 5.0
+    }
+  ],
+  "total_tutorias": 0,
+  "promedio_calificacion": 5.0,
+  "creado_en": "2026-10-23T19:44:34.933834-05:00",
+  "actualizado_en": "2026-10-23T19:44:34.933840-05:00",
+  "usuario_nombre": "Carlos Rodríguez",
+  "total_resenas": 0,
+  "resenas": []
+}

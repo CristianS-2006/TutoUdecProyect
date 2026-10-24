@@ -209,7 +209,52 @@ def _score(norm_msg, tokens, keywords):
                 total += 3 * len(kw.split())
         elif kw in tokens:
             total += 1 if kw in WEAK else 3
+        elif len(kw) >= 6 and kw not in WEAK and difflib.get_close_matches(kw, tokens, n=1, cutoff=0.84):
+            total += 2.5
     return total
+
+
+DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre',
+         'noviembre', 'diciembre']
+FRASES = [
+    'La constancia vence al talento cuando el talento no se esfuerza. 💪',
+    'No tienes que ser perfecto, solo constante: un poco cada día suma muchísimo. 🌱',
+    'Pedir ayuda a tiempo no es debilidad, es estrategia. 🎯',
+    'Cada tema difícil de hoy será tu fortaleza de mañana. 🚀',
+]
+
+
+def _utilities(norm_msg, tokens, raw=''):
+    """Hora, fecha y cálculos sencillos. Devuelve (respuesta, intent, sugerencias) o None."""
+    from datetime import datetime, timedelta, timezone
+    follow = ['¿Cómo agendo una tutoría?', '¿Qué materias hay?']
+    now = datetime.now(timezone(timedelta(hours=-5)))
+    if re.search(r'\bque hora\b|\bhora es\b|\bme dices la hora\b', norm_msg):
+        return f'Ahora mismo son las {now.strftime("%I:%M %p")} (hora de Colombia). ⏰', 'utilidad', follow
+    if re.search(r'\bque (dia|fecha)\b|\bfecha de hoy\b|\ba cuantos estamos\b|\bque dia es hoy\b', norm_msg):
+        return (f'Hoy es {DIAS[now.weekday()]} {now.day} de {MESES[now.month - 1]} de {now.year}. 📅',
+                'utilidad', follow)
+    if re.search(r'\b(motivame|motivacion|animame|frase|dame animo|dame fuerzas)\b', norm_msg):
+        return random.choice(FRASES), 'utilidad', follow
+    expr = unicodedata.normalize('NFD', raw.lower())
+    expr = ''.join(c for c in expr if unicodedata.category(c) != 'Mn').replace(',', '.').replace('x', '*')
+    expr = re.sub(r'[¿?¡!=]', ' ', expr)
+    expr = re.sub(r'\b(cuanto es|cuanto da|calcula|resuelve|resultado de)\b', ' ', expr)
+    expr = re.sub(r'\bpor\b', '*', expr)
+    expr = re.sub(r'\bmas\b', '+', expr)
+    expr = re.sub(r'\bmenos\b', '-', expr)
+    expr = re.sub(r'\b(entre|dividido)\b', '/', expr).replace('dividido', '/')
+    expr = expr.strip()
+    if re.fullmatch(r'[0-9+\-*/().\s]{3,40}', expr) and re.search(r'\d\s*[+\-*/]\s*\d', expr):
+        try:
+            value = eval(expr, {'__builtins__': {}}, {})  # solo dígitos y operadores por el regex
+            if isinstance(value, float):
+                value = round(value, 4)
+            return f'El resultado es {value}. 🧮', 'utilidad', follow
+        except Exception:
+            return None
+    return None
 
 
 GREETING_WORDS = ['hola', 'holi', 'holis', 'holaa', 'ola', 'buenas', 'wenas', 'hey', 'hi', 'hello', 'saludos',
@@ -318,6 +363,10 @@ def respond(message, history=None):
         for soft in ('bienvenida', 'despedida'):
             if soft in scores and len(scores) > 1:
                 scores[soft] = 0
+
+    util = _utilities(norm_msg, tokens, message)
+    if util:
+        return util
 
     ranked = sorted(scores.items(), key=lambda x: -x[1])
     ranked = [r for r in ranked if r[1] > 0]

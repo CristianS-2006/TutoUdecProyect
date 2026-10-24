@@ -131,3 +131,11 @@ class ChatbotAPITestCase(APITestCase):
         self.assertEqual(data['intent'], 'default')
         self.assertIn('No tengo informaci', data['bot_response'])
         self.assertTrue(data['suggestions'])
+
+    def test_returns_enterprise_5_json_payload(self):
+        data = self.ask('que es la udec').data
+        self.assertEqual(data['response_json']['standard'], 'empresarial-5.0')
+        self.assertIn(data['response_json']['mode'], ('rules', 'ai'))
+        self.assertIn('business_5_0', data['response_json'])
+        self.assertIn('answer', data['response_json'])
+        self.assertEqual(data['bot_response'], data['response_json']['answer'])

@@ -202,6 +202,8 @@ Cambia el valor de `DEFAULT_LAN_HOST` por tu IP local.
 | GET | `/api/materias/` | Listar materias |
 | POST | `/api/tutorias/` | Crear tutoría |
 | GET | `/api/tutorias/mis_tutorias/` | Mis tutorías |
+| POST | `/api/chatbot/chat/` | Chatbot con salida JSON empresarial 5.0 |
+| GET | `/api/chatbot/quick_questions/` | Preguntas rápidas sugeridas |
 
 Documentación interactiva disponible en: http://localhost:8000/api/schema/swagger-ui/
 
@@ -221,3 +223,8 @@ Documentación interactiva disponible en: http://localhost:8000/api/schema/swagg
 - El backend corre en `0.0.0.0:8000` para permitir conexiones desde otros dispositivos
 - La app móvil requiere **Expo SDK 54** y **React 19.1.0**
 - Para producción, cambiar `DEBUG=False` y usar HTTPS
+- Chatbot:
+  - Sin configuración extra usa un motor local con base de conocimiento.
+  - Si defines `AI_ENABLED=true` y `OPENAI_API_KEY`, usa proveedor IA.
+  - Opcional: `OPENAI_MODEL` (por defecto `gpt-4o-mini`).
+  - La respuesta incluye `response_json` con estándar `empresarial-5.0`.

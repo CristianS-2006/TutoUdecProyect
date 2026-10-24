@@ -851,19 +851,26 @@ class ChatbotViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        from .chatbot_engine import respond
+        from .ai_chatbot import chat_response_json
         history = request.data.get('history') or []
         if not isinstance(history, list):
             history = []
-        response, intent, suggestions = respond(
-            user_message[:1000], [h for h in history[-6:] if isinstance(h, dict)]
+        chat_json = chat_response_json(
+            user_message[:1000], [h for h in history[-8:] if isinstance(h, dict)]
         )
+        payload = chat_json['payload']
 
         return Response({
             'user_message': user_message,
-            'bot_response': response,
-            'intent': intent,
-            'suggestions': suggestions
+            'bot_response': payload['answer'],
+            'intent': payload['intent'],
+            'suggestions': payload['suggestions'],
+            'response_json': {
+                'standard': 'empresarial-5.0',
+                'mode': chat_json['mode'],
+                'provider': chat_json['provider'],
+                **payload,
+            }
         })
 
     @action(detail=False, methods=['get'])

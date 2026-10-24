@@ -13,7 +13,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { C } from '../../theme/colors';
 import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChatbotScreen({ navigation }) {
   const [messages, setMessages] = useState([]);
@@ -21,7 +21,7 @@ export default function ChatbotScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [quickQuestions, setQuickQuestions] = useState([]);
   const flatListRef = useRef(null);
-  const { updateLastActivity } = useAuth();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadQuickQuestions();
@@ -50,8 +50,6 @@ export default function ChatbotScreen({ navigation }) {
 
   const sendMessage = async (text = inputText) => {
     if (!text.trim()) return;
-
-    updateLastActivity();
 
     const userMessage = {
       id: Date.now().toString(),
@@ -173,7 +171,7 @@ export default function ChatbotScreen({ navigation }) {
         </View>
       )}
 
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { paddingBottom: 10 + insets.bottom }]}>
         <TextInput
           style={styles.input}
           placeholder="Escribe tu mensaje..."

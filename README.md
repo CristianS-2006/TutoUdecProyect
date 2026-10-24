@@ -91,6 +91,16 @@ npm ci
 npm run dev
 ```
 
+### Análisis exploratorio y despliegue
+
+```powershell
+pip install -r analytics/requirements.txt
+python analytics/eda_tutoudec.py http://4.206.201.129/api   # genera analytics/output (gráficas + informe)
+```
+
+La configuración de nginx usada en la VM de Azure está en `deploy/nginx-tutoudec.conf`
+(web compilada en `/var/www/tutoudec` y proxy de `/api/` a gunicorn en `127.0.0.1:8000`).
+
 ---
 
 ## 📁 Documentación por Carpeta

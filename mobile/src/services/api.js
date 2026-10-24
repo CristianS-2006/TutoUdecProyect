@@ -19,20 +19,9 @@ const api = axios.create({
   },
 });
 
-let sessionExpiredHandler = null;
-// AuthContext lo registra para volver al login cuando la sesión guardada ya no sirve.
-export const setSessionExpiredHandler = (fn) => {
-  sessionExpiredHandler = fn;
-};
-
 api.interceptors.request.use(async (config) => {
   // Se inyecta JWT en cada request autenticado.
-  if (config.skipAuth) {
-    // El chatbot es público: se quita también la cabecera por defecto con el token guardado.
-    delete config.headers.Authorization;
-    return config;
-  }
-  const token = await AsyncStorage.getItem(TOKEN_KEY);
+  const token = config.skipAuth ? null : await AsyncStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -56,15 +45,11 @@ api.interceptors.response.use(
           });
           await AsyncStorage.setItem(TOKEN_KEY, data.access);
           original.headers.Authorization = `Bearer ${data.access}`;
-          api.defaults.headers.common.Authorization = original.headers.Authorization;
           return api(original);
         } catch {
           // Si refresh falla, se invalidan tokens para forzar nuevo login.
           await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_KEY]);
-          if (sessionExpiredHandler) sessionExpiredHandler();
         }
-      } else if (!original.skipAuth && original.headers?.Authorization && sessionExpiredHandler) {
-        sessionExpiredHandler();
       }
     }
     return Promise.reject(error);
@@ -73,9 +58,6 @@ api.interceptors.response.use(
 
 export default api;
 export { API_URL, TOKEN_KEY, REFRESH_KEY };
-
-// Despierta el servidor (Render gratis se duerme) apenas abre la app, sin bloquear la interfaz.
-api.get('/chatbot/quick_questions/', { skipAuth: true, timeout: 90000 }).catch(() => {});
 
 export const authService = {
   // Endpoints de autenticación y perfil.

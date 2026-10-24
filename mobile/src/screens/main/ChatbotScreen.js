@@ -71,10 +71,11 @@ export default function ChatbotScreen({ navigation }) {
       
       const botMessage = {
         id: (Date.now() + 1).toString(),
-        text: response.data.bot_response,
+        text: response.data.response_json?.follow_up_question
+          ? `${response.data.bot_response}\n\n${response.data.response_json.follow_up_question}`
+          : response.data.bot_response,
         sender: 'bot',
         intent: response.data.intent,
-        suggestions: (response.data.suggestions || []).slice(0, 3),
         time: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
       };
 
@@ -96,8 +97,6 @@ export default function ChatbotScreen({ navigation }) {
   const handleQuickQuestion = (question) => {
     sendMessage(question);
   };
-
-  const lastBotId = [...messages].reverse().find((m) => m.sender === 'bot')?.id;
 
   const renderMessage = ({ item }) => (
     <View
@@ -121,15 +120,6 @@ export default function ChatbotScreen({ navigation }) {
           {item.text}
         </Text>
         <Text style={styles.timeText}>{item.time}</Text>
-        {item.sender === 'bot' && item.suggestions?.length > 0 && item.id === lastBotId && !loading && (
-          <View style={styles.suggestRow}>
-            {item.suggestions.map((s, i) => (
-              <TouchableOpacity key={i} style={styles.quickBtn} onPress={() => sendMessage(s)}>
-                <Text style={styles.quickBtnText}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
       </View>
     </View>
   );
@@ -315,12 +305,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  suggestRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10,
   },
   quickBtn: {
     backgroundColor: '#f0f0f0',

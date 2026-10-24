@@ -1,4 +1,6 @@
 """Motor conversacional de TutoUdec: puntuación por coincidencias, contexto y fallback honesto."""
+import difflib
+import random
 import re
 import unicodedata
 
@@ -45,7 +47,8 @@ TOPICS = {
     },
     'registro': {
         'keywords': ['registrarme', 'registro', 'crear cuenta', 'nueva cuenta', 'inscribirme', 'inscripcion',
-                     'sign up', 'darme de alta', 'abrir cuenta', 'como me registro'],
+                     'sign up', 'darme de alta', 'abrir cuenta', 'como me registro', 'me inscribo', 'como me inscribo',
+                     'inscribir', 'registro de cuenta'],
         'answer': 'Para crear tu cuenta en TutoUdec:\n1. Abre la app y toca "Registrarse".\n2. Completa tus datos '
                   '(nombre, usuario, correo y contraseña).\n3. Elige si eres estudiante o tutor.\n4. Confirma y '
                   'ya puedes iniciar sesión.\n\nSi te marca error, revisa que todos los campos estén completos, '
@@ -209,11 +212,99 @@ def _score(norm_msg, tokens, keywords):
     return total
 
 
+GREETING_WORDS = ['hola', 'holi', 'holis', 'holaa', 'ola', 'buenas', 'wenas', 'hey', 'hi', 'hello', 'saludos',
+                  'epa', 'quiubo', 'quihubo', 'buenos', 'ey']
+GREETING_REPLIES = [
+    '¡Holi! 😄 Qué bueno verte por aquí. Soy el asistente de TutoUdec. ¿Cómo vas hoy? Cuéntame en qué te '
+    'puedo ayudar: tutorías, materias, tu cuenta o lo que quieras saber de la UdeC.',
+    '¡Hola! 👋 Me alegra que me escribas. ¿Cómo te va? Estoy listo para ayudarte con lo que necesites de '
+    'TutoUdec o de la Universidad de Cundinamarca.',
+    '¡Hey, hola! 😊 Aquí estoy. ¿Qué tienes en mente hoy? Puedo ayudarte a encontrar un tutor, resolver '
+    'dudas de la app o simplemente conversar un rato.',
+]
+HOW_ARE_YOU = [
+    '¡Muy bien, gracias por preguntar! 😊 Con ganas de ayudarte. ¿Y tú, cómo estás? Cuéntame qué necesitas.',
+    'Todo en orden por acá, ¡gracias! 🙌 ¿Y tú cómo te sientes hoy? Si quieres, te ayudo con tus tutorías.',
+]
+FEELINGS_NEG = {'triste', 'estresado', 'estresada', 'estres', 'cansado', 'cansada', 'agotado', 'agotada',
+                'ansioso', 'ansiosa', 'preocupado', 'preocupada', 'mal', 'desanimado', 'desanimada',
+                'frustrado', 'frustrada', 'agobiado', 'agobiada', 'deprimido', 'deprimida', 'nervioso',
+                'nerviosa', 'perdido', 'perdida', 'aburrido', 'aburrida'}
+FEELINGS_POS = {'feliz', 'contento', 'contenta', 'emocionado', 'emocionada', 'genial', 'bien', 'super',
+                'tranquilo', 'tranquila', 'alegre', 'motivado', 'motivada'}
+JOKES = [
+    '¿Por qué el estudiante llevó una escalera a clase? Porque quería llegar a un nivel más alto. 😄',
+    '¿Sabes por qué los programadores confunden Halloween con Navidad? Porque 31 OCT = 25 DEC. 🎃',
+    '—Profe, ¿puedo entregar el trabajo mañana? —Claro. —¡Gracias! —De nada... del año pasado. 😅',
+]
+COMPLIMENTS = {'genial', 'crack', 'buenisimo', 'buenisima', 'inteligente', 'increible', 'chevere', 'util',
+               'bacano', 'maquina', 'capo'}
+INSULTS = {'tonto', 'inutil', 'estupido', 'torpe', 'malo', 'pesimo', 'bobo', 'idiota'}
+CONVERSATIONAL_FALLBACKS = [
+    'Mmm, con eso no te sé responder bien todavía 🤔, pero me interesa entenderte. ¿Me lo cuentas con otras '
+    'palabras? Mientras tanto, puedo ayudarte con tutorías, materias, horarios, pagos, tu cuenta y la UdeC.',
+    'Te leo, aunque de eso no tengo información confiable y prefiero no inventarte nada. 🙏 Si quieres, '
+    'cuéntame un poco más de lo que buscas, o elige una de estas opciones y avanzamos.',
+    'Ese tema se me escapa un poco 😅. Lo mío es TutoUdec y la Universidad de Cundinamarca, pero puedo '
+    'conversar contigo y ayudarte a orientarte. ¿Qué te gustaría resolver?',
+]
+
+
+def _is_greeting_token(tok):
+    return tok in GREETING_WORDS or bool(difflib.get_close_matches(tok, GREETING_WORDS, n=1, cutoff=0.78))
+
+
+def _small_talk(norm_msg, tokens, raw_tokens):
+    """Respuestas conversacionales para charla corta. Devuelve (respuesta, intent, sugerencias) o None."""
+    follow = ['¿Qué es TutoUdec?', '¿Cómo agendo una tutoría?', '¿Qué materias hay?']
+    m = re.search(r'\b(?:me llamo|mi nombre es|soy)\s+([a-zñ]{2,20})\b', norm_msg)
+    if m and m.group(1) not in ('tutor', 'estudiante', 'nuevo', 'nueva', 'de', 'un', 'una', 'el', 'la'):
+        name = m.group(1).capitalize()
+        return (f'¡Mucho gusto, {name}! 😊 Yo soy el asistente de TutoUdec. ¿En qué te puedo ayudar hoy?',
+                'bienvenida', follow)
+    if re.search(r'\b(como estas|como esta|como vas|como te va|como andas|que tal|que hay|que mas|que haces)\b',
+                 norm_msg):
+        return random.choice(HOW_ARE_YOU), 'bienvenida', follow
+    if 'chiste' in tokens or 'chistoso' in tokens or 'hazme reir' in norm_msg:
+        return random.choice(JOKES) + '\n\n¿Quieres otro o prefieres que te ayude con tus tutorías?', 'chiste', follow
+    if tokens & INSULTS:
+        return ('Lamento no haber sido de ayuda 🙏. Dame otra oportunidad: cuéntame con más detalle qué '
+                'necesitas y lo intento de nuevo.', 'bienvenida', follow)
+    if tokens & COMPLIMENTS and len(tokens) <= 4 and ('eres' in tokens or 'que' in tokens or len(tokens) == 1):
+        return ('¡Gracias, qué amable! 😊 Me motiva ayudarte. ¿Hay algo más en lo que pueda apoyarte?',
+                'bienvenida', follow)
+    if tokens & FEELINGS_NEG:
+        return ('Lamento que te sientas así 💛. A veces la carga académica pesa mucho, pero se puede '
+                'organizar paso a paso. Si quieres, te ayudo a encontrar un tutor, te doy consejos de estudio '
+                'o simplemente me cuentas qué pasa.',
+                'estudio', ['Dame consejos para estudiar', '¿Cómo busco un tutor?'])
+    if tokens & FEELINGS_POS and len(tokens) <= 5:
+        return ('¡Qué bueno leer eso! 🎉 Aprovechemos esa energía: ¿en qué te ayudo hoy?', 'bienvenida', follow)
+    if tokens & {'si', 'sip', 'dale', 'claro', 'ok', 'okay', 'vale'} and len(tokens) <= 2:
+        return ('¡Perfecto! 👍 Cuéntame un poco más: ¿buscas un tutor, quieres saber de materias, o tienes '
+                'un problema con la app?', 'bienvenida', follow)
+    if tokens & {'no', 'nop', 'nada'} and len(tokens) <= 2:
+        return ('Está bien 😊. Si más adelante necesitas algo, aquí estaré. ¿Quieres que te cuente algo de '
+                'TutoUdec mientras tanto?', 'bienvenida', follow)
+    if tokens & {'ayuda', 'ayudame', 'help', 'menu'} and len(tokens) <= 3:
+        return ('¡Claro que sí! 🙌 Puedo ayudarte con: buscar y agendar tutorías, materias y horarios, costos y '
+                'pagos, tu cuenta y contraseña, cómo ser tutor y datos de la UdeC. ¿Por cuál empezamos?',
+                'bienvenida', follow)
+    if raw_tokens and all(_is_greeting_token(t) for t in raw_tokens[:2]) and len(raw_tokens) <= 3:
+        return random.choice(GREETING_REPLIES), 'bienvenida', follow
+    if raw_tokens and _is_greeting_token(raw_tokens[0]) and len(raw_tokens) <= 6 and not (
+            tokens & {'inscribo', 'tutor', 'tutoria', 'materia', 'pago'}):
+        return random.choice(GREETING_REPLIES), 'bienvenida', follow
+    return None
+
+
 def respond(message, history=None):
     """Devuelve (respuesta, intent, sugerencias)."""
     norm_msg = ' ' + ' '.join(normalize(message).split()) + ' '
     tokens = set(norm_msg.split())
+    raw_tokens = norm_msg.split()
     norm_msg = norm_msg.strip()
+    feeling_neg = bool(tokens & FEELINGS_NEG)
 
     scores = {}
     for name, topic in TOPICS.items():
@@ -231,6 +322,12 @@ def respond(message, history=None):
     ranked = sorted(scores.items(), key=lambda x: -x[1])
     ranked = [r for r in ranked if r[1] > 0]
 
+    strong_topic = any(s >= 3 and n not in ('bienvenida', 'despedida') for n, s in ranked)
+    if len(raw_tokens) <= 8 and not strong_topic:
+        talk = _small_talk(norm_msg, tokens, raw_tokens)
+        if talk:
+            return talk
+
     # Preguntas de seguimiento muy cortas ("y eso?", "cuánto?") usan el tema anterior.
     if (not ranked or ranked[0][1] < 3) and history and len(tokens) <= 4:
         last = next((h.get('intent') for h in reversed(history) if h.get('intent') in TOPICS), None)
@@ -241,16 +338,13 @@ def respond(message, history=None):
             return ('Sobre ese mismo tema: ' + topic['answer'], last, topic['follow'])
 
     if not ranked or ranked[0][1] < 2:
-        answer = ('No tengo información confiable sobre eso, y prefiero no inventarte una respuesta. 🙏\n\n'
-                  'Puedo ayudarte con TutoUdec (tutorías, materias, horarios, pagos, cuenta, ser tutor) y con '
-                  'información general de la Universidad de Cundinamarca. Para temas que no manejo, consulta '
-                  'www.ucundinamarca.edu.co o escribe a tutoudec.soporte@gmail.com.\n\n¿Quieres intentar con '
-                  'una de estas preguntas?')
-        return answer, 'default', FALLBACK_SUGGESTIONS
+        return random.choice(CONVERSATIONAL_FALLBACKS), 'default', FALLBACK_SUGGESTIONS
 
     best = ranked[0][0]
     topic = TOPICS[best]
     answer = topic['answer']
+    if feeling_neg:
+        answer = 'Te entiendo, y lamento que estés pasando por eso 💛. Vamos paso a paso.\n\n' + answer
     # Si hay un segundo tema relevante, se menciona para respuestas más completas.
     if len(ranked) > 1 and ranked[1][1] >= 3 and ranked[1][1] >= ranked[0][1] * 0.6:
         second = TOPICS[ranked[1][0]]
